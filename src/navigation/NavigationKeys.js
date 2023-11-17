@@ -16,6 +16,8 @@ export const StackNav = {
   onBoarding: 'onBoarding',
   SelectInterest: 'SelectInterest',
   SetPin: 'SetPin',
+  CheckPin: 'CheckPin',
+  UpdatePin: 'UpdatePin',
   SetUpProfile: 'SetUpProfile',
   SetSecure: 'SetSecure',
   ForgotPassword: 'ForgotPassword',
@@ -71,4 +73,9 @@ export const StackNav = {
   ShiftingAddress: 'ShiftingAddress',
   Painting: 'Painting',
   EditProfile: 'EditProfile',
+  AddAddressForOwner: 'AddAddressForOwner',
+  PayService: 'PayService',
+  PayPartially: 'PayPartially',
+  AddYourService: 'AddYourService',
+  ChooseServiceCompany:"ChooseServiceCompany",
 };

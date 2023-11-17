@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Local Imports
 import {colors, styles} from '../../themes';
 import {StackNav} from '../../navigation/NavigationKeys';
-import {ACCESS_TOKEN, ON_BOARDING, THEME} from '../../common/constants';
+import {THEME} from '../../common/constants';
 import {changeThemeAction} from '../../redux/action/themeAction';
 import {initialStorageValueGet} from '../../utils/asyncstorage';
 import CSafeAreaView from '../../components/common/CSafeAreaView';
@@ -17,7 +17,7 @@ import CSafeAreaView from '../../components/common/CSafeAreaView';
 const Splash = ({navigation}) => {
   const color = useSelector(state => state.theme.theme);
   const dispatch = useDispatch();
-
+  
   const asyncProcess = async () => {
     try {
       let asyncData = await initialStorageValueGet();
@@ -31,7 +31,7 @@ const Splash = ({navigation}) => {
           }
         }
         if (!!acessTokenValue) {
-          navigation.replace(StackNav.TabBar);
+          navigation.replace(StackNav.CheckPin);
         } else if (!!onBoardingValue) {
           navigation.replace(StackNav.Auth);
         } else {
@@ -39,9 +39,11 @@ const Splash = ({navigation}) => {
         }
       }
     } catch (e) {
-      console.log('error ', e);
+      console.log('error ',e);
     }
   };
+
+  
 
   useEffect(() => {
     SplashScreen.hide();

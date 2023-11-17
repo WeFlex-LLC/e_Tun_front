@@ -14,18 +14,10 @@ import HomeServiceComponent from '../../../components/HomeServiceComponent';
 
 export default function ProductCategory({navigation, route}) {
   const item = route?.params?.item;
+  const title = route?.params?.title;
   const colors = useSelector(state => state.theme.theme);
-
-  const onPressSearch = () => navigation.navigate(StackNav.Search);
-
-  const RightIcon = () => {
-    return (
-      <TouchableOpacity onPress={onPressSearch}>
-        {colors.dark ? <Search_Dark /> : <Search_Light />}
-      </TouchableOpacity>
-    );
-  };
-
+  const language = useSelector(state => state?.profile?.language);
+  
   const onPressDetail = itm =>
     navigation.navigate(StackNav.ProductDetail, {item: itm});
 
@@ -41,10 +33,10 @@ export default function ProductCategory({navigation, route}) {
 
   return (
     <CSafeAreaView>
-      <CHeader title={item?.title} rightIcon={<RightIcon />} />
+      <CHeader title={language  == "Armenian" ? title.name_am : language  == "Russian" ? title.name_ru : title.name_en} />
       <View style={localStyles.root}>
         <FlashList
-          data={item?.data}
+          data={item}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           estimatedItemSize={10}

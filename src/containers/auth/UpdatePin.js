@@ -1,7 +1,7 @@
 // Library import
 import {StyleSheet, View} from 'react-native';
 import React, {useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 
 // Local import
@@ -15,93 +15,82 @@ import {getHeight, moderateScale} from '../../common/constants';
 import {StackNav, TabNav} from '../../navigation/NavigationKeys';
 import CButton from '../../components/common/CButton';
 import typography from '../../themes/typography';
-import SuccessModal from '../../components/models/SuccessModal';
-import {RefundSuccessfullIcon} from '../../assets/svgs';
+import {getAsyncStorageData} from '../../utils/helpers';
 
-const SetPin = ({navigation, route}) => {
+const UpdatePin = ({navigation, route}) => {
   const colors = useSelector(state => state.theme.theme);
-  const title = route.params?.title;
-  const isRefund = route.params?.isRefund;
-  const [pin, setPin] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [Status, setStatus] = useState(route.params?.status);
-  const token = route.params?.token;
+  const [OldPin, setOldPin] = useState('');
+  const [NewPin, setNewPin] = useState('');
+  const dispatch = useDispatch();
 
-  const SetFirstPin = async () => {
-    if (!Status) {
+  const AsyncChangePin = async () => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+
       try {
         const response = await fetch(
           'https://etunbackend-production.up.railway.app/api/users/pin',
           {
-            method: 'POST',
+            method: 'PUT',
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              pin: pin,
+              oldPin: OldPin,
+              newPin: NewPin,
             }),
           },
         );
         const res = await response.json();
-
-        
         if (res.success) {
-          setStatus(true);
-          // await setAsyncStorageData('PIN', pin);
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: StackNav.TabBar,
-              },
-            ],
-          });
+          navigation.navigate(StackNav.TabBar);
         }
       } catch (error) {
         console.log(error);
       }
-    }
+    
   };
 
-  const onPressModalClose = () => setModalVisible(false);
-
-  const onPinChange = code => setPin(code);
-  const onPressPinContinue = () => {
-    // if (!!title) {
-    // setModalVisible(true);
-    // } else {
-    //   navigation.navigate(StackNav.SetSecure);
-    // }
-  };
-
-  const onPressERiceipt = () => {
-    setModalVisible(false);
-    navigation.navigate(StackNav.EReceipt, {item: ''});
-  };
-
-  // const onPressChat = () => {
-  //   setModalVisible(false);
-  //   navigation.navigate(StackNav.CustomerService, {title: 'Lucy'});
-  // };
-  // const onPressOk = () => {
-  //   setModalVisible(false);
-  //   navigation.navigate(TabNav.BookingsTab);
-  // };
+  const onOldPinChange = code => setOldPin(code);
+  const onNewPinChange = code => setNewPin(code);
 
   return (
     <CSafeAreaView>
-      <CHeader title={!!title ? title : strings.createNewPin} />
-      <KeyBoardAvoidWrapper contentContainerStyle={styles.flexGrow1}>
+      <CHeader title={'Change Pin'} />
+      <KeyBoardAvoidWrapper contentContainerStyle={localStyles.Container}>
         <View style={localStyles.root}>
-          <CText type={'r18'} align={'center'}>
-            {!!title ? strings.enterPINPayment : strings.pinDesc}
+          <CText type={'b18'} align={'center'}>
+            {'Old Pin'}
           </CText>
           <OTPInputView
             pinCount={6}
-            code={pin}
-            onCodeChanged={onPinChange}
+            code={OldPin}
+            onCodeChanged={onOldPinChange}
+            autoFocusOnLoad={false}
+            codeInputFieldStyle={[
+              localStyles.pinInputStyle,
+              {
+                color: colors.textColor,
+                backgroundColor: colors.inputBg,
+                borderColor: colors.borderColor,
+              },
+            ]}
+            codeInputHighlightStyle={{
+              borderColor: colors.textColor,
+            }}
+            style={localStyles.inputStyle}
+            secureTextEntry={true}
+          />
+        </View>
+        <View style={localStyles.root}>
+          <CText type={'b18'} align={'center'}>
+            {'New Pin'}
+          </CText>
+          <OTPInputView
+            pinCount={6}
+            code={NewPin}
+            onCodeChanged={onNewPinChange}
             autoFocusOnLoad={false}
             codeInputFieldStyle={[
               localStyles.pinInputStyle,
@@ -121,32 +110,15 @@ const SetPin = ({navigation, route}) => {
         <CButton
           type={'S16'}
           title={strings.continue}
-          onPress={SetFirstPin}
+          onPress={AsyncChangePin}
           containerStyle={localStyles.btnContainerStyle}
-        />
-        <SuccessModal
-          visible={modalVisible}
-          onPressModalClose={onPressModalClose}
-          itemImage={<RefundSuccessfullIcon style={styles.selfCenter} />}
-          headerTitle={
-            isRefund
-              ? strings.cancelBookingSuccessful
-              : strings.bookingSuccessful
-          }
-          subTitle={
-            isRefund ? strings.cancelBookingSucDesc : strings.bookingSucDesc
-          }
-          // btnText1={isRefund ? strings.ok : strings.viewEReceipt}
-          // btnText2={isRefund ? '' : strings.messageWorkers}
-          // onPressBtn1={isRefund ? onPressOk : onPressERiceipt}
-          // onPressBtn2={isRefund ? () => {} : onPressChat}
         />
       </KeyBoardAvoidWrapper>
     </CSafeAreaView>
   );
 };
 
-export default SetPin;
+export default UpdatePin;
 
 const localStyles = StyleSheet.create({
   root: {
@@ -168,5 +140,11 @@ const localStyles = StyleSheet.create({
   inputStyle: {
     height: getHeight(60),
     ...styles.mv30,
+  },
+  Container: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    ...styles.mt50,
   },
 });

@@ -1,5 +1,5 @@
 import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 
@@ -14,13 +14,18 @@ import {
 import CText from '../common/CText';
 import {moderateScale} from '../../common/constants';
 import {StackNav, TabNav} from '../../navigation/NavigationKeys';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAsyncStorageData } from '../../utils/helpers';
 
-function HomeHeader() {
+
+ function HomeHeader() {
   const navigation = useNavigation();
   const colors = useSelector(state => state.theme.theme);
 
   const onPressNotification = () => navigation.navigate(StackNav.Notification);
   const onPressLike = () => navigation.navigate(StackNav.MyWishlist);
+  const _Name = useSelector(state => state.UserInfo.name);
+
 
   const onPressProfile = () => {
     navigation.navigate(TabNav.ProfileTab);
@@ -40,7 +45,7 @@ function HomeHeader() {
           {'Good Morning 👋'}
         </CText>
         <CText type="B20" numberOfLines={1} color={colors.primaryTextColor}>
-          {'Andrew Ainsley'}
+            {_Name}
         </CText>
       </View>
       <View style={styles.rowCenter}>

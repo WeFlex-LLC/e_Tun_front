@@ -8,7 +8,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import strings from '../../i18n/strings';
 import {styles} from '../../themes';
 import CText from '../../components/common/CText';
-import {ACCESS_TOKEN, getHeight, moderateScale} from '../../common/constants';
+import { getHeight, moderateScale} from '../../common/constants';
 import CHeader from '../../components/common/CHeader';
 import CSafeAreaView from '../../components/common/CSafeAreaView';
 import {
@@ -21,7 +21,7 @@ import {StackNav} from '../../navigation/NavigationKeys';
 import CInput from '../../components/common/CInput';
 import {validateEmail, validatePassword} from '../../utils/validators';
 import KeyBoardAvoidWrapper from '../../components/common/KeyBoardAvoidWrapper';
-import {setAsyncStorageData} from '../../utils/helpers';
+import {getAsyncStorageData, setAsyncStorageData} from '../../utils/helpers';
 import CButton from '../../components/common/CButton';
 
 const Login = ({navigation}) => {
@@ -66,7 +66,7 @@ const Login = ({navigation}) => {
     React.useState(BlurredStyle);
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(true);
   const [isCheck, setIsCheck] = React.useState(false);
-
+  const [IncorrectCredentials, setIncorrectCredentials] = React.useState();
   const onFocusInput = onHighlight => onHighlight(FocusedStyle);
   const onFocusIcon = onHighlight => onHighlight(FocusedIconStyle);
   const onBlurInput = onUnHighlight => onUnHighlight(BlurredStyle);
@@ -154,16 +154,63 @@ const Login = ({navigation}) => {
     </TouchableOpacity>
   );
 
+  
   const onPressSignWithPassword = async () => {
-    await setAsyncStorageData(ACCESS_TOKEN, 'access_token');
-    navigation.reset({
-      index: 0,
-      routes: [
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/auth/user',
         {
-          name: StackNav.TabBar,
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
         },
-      ],
-    });
+      );
+      const res = await response.json();
+        
+      if (res.access_token) {
+
+        await setAsyncStorageData('ACCESS_TOKEN', res.access_token);
+        await setAsyncStorageData('REFRESH_TOKEN', res.refresh_token);
+        await setAsyncStorageData('SUB', res.user.sub);
+
+        if(!res?.hasPin){
+          
+          navigation.navigate(StackNav.SetPin,{status: res.hasPin,token: res.access_token})
+        }else{
+
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: StackNav.TabBar,
+              },
+            ],
+          });
+        }
+        
+      } else {
+        setIncorrectCredentials(res.message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const ShowIncorrectCredentialsMessage = () => {
+    return (
+      <View>
+        {IncorrectCredentials && (
+          <CText type={'b14'} style={{color: 'red'}}>
+            {IncorrectCredentials}
+          </CText>
+        )}
+      </View>
+    );
   };
   const onPressPasswordEyeIcon = () => setIsPasswordVisible(!isPasswordVisible);
   const onPressSignUp = () => navigation.navigate(StackNav.Register);
@@ -173,12 +220,12 @@ const Login = ({navigation}) => {
   return (
     <CSafeAreaView style={localStyles.root}>
       {/* <CHeader /> */}
-      <KeyBoardAvoidWrapper  >
+      <KeyBoardAvoidWrapper>
         <View style={localStyles.mainContainer}>
           <CText type={'b46'} align={'left'} style={styles.mv40}>
             {strings.loginYourAccount}
           </CText>
-
+          <ShowIncorrectCredentialsMessage/>
           <CInput
             placeHolder={strings.email}
             keyBoardType={'email-address'}
@@ -216,7 +263,7 @@ const Login = ({navigation}) => {
             onBlur={onBlurPassword}
             rightAccessory={() => <RightPasswordEyeIcon />}
           />
-{/* 
+          {/* 
           <TouchableOpacity
             onPress={() => setIsCheck(!isCheck)}
             style={localStyles.checkboxContainer}>
@@ -299,11 +346,11 @@ const localStyles = StyleSheet.create({
   root: {
     // ...styles.justifyCenter,
     // ...styles.center,
-    ...styles.pt40
+    ...styles.pt40,
   },
   mainContainer: {
     ...styles.ph20,
-    ...styles.center
+    ...styles.center,
   },
   divider: {
     ...styles.rowCenter,
@@ -349,9 +396,9 @@ const localStyles = StyleSheet.create({
   },
   forMid: {
     display: 'flex',
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor:'red',
-    height:'200px',
-  }
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'red',
+    height: '200px',
+  },
 });

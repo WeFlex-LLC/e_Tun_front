@@ -25,7 +25,7 @@ export default function CheckOut({navigation, route}) {
   const colors = useSelector(state => state.theme.theme);
 
   const onPressPayment = () =>
-    navigation.navigate(StackNav.SetPin, {
+    navigation.navigate(StackNav.CheckPin, {
       title: strings.paymentMethods,
       desc: strings.paymentDesc1,
       isWallet: true,

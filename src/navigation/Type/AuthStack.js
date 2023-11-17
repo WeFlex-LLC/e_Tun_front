@@ -19,6 +19,7 @@ export default function AuthStack() {
         component={StackRoute.SelectInterest}
       />
       <Stack.Screen name={StackNav.SetPin} component={StackRoute.SetPin} />
+      <Stack.Screen name={StackNav.CheckPin} component={StackRoute.CheckPin} />
       <Stack.Screen name={StackNav.Birthday} component={StackRoute.Birthday} />
       <Stack.Screen name={StackNav.Gender} component={StackRoute.Gender} />
       <Stack.Screen

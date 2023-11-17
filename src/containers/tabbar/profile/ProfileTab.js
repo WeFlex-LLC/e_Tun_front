@@ -28,7 +28,7 @@ import {ProfileSetting} from '../../../api/constant';
 import strings from '../../../i18n/strings';
 import CText from '../../../components/common/CText';
 import {changeThemeAction} from '../../../redux/action/themeAction';
-import {setAsyncStorageData} from '../../../utils/helpers';
+import {getAsyncStorageData, setAsyncStorageData} from '../../../utils/helpers';
 import images from '../../../assets/images';
 import {StackNav} from '../../../navigation/NavigationKeys';
 import LogOut from '../../../components/models/LogOut';
@@ -40,7 +40,7 @@ export default function ProfileTab({navigation}) {
   const [isEnabled, setIsEnabled] = useState(!!color.dark);
   const dispatch = useDispatch();
   const LogOutSheetRef = createRef();
-
+  
   const onPressMenu = () => {};
 
   const onPressLightTheme = () => {
@@ -76,8 +76,9 @@ export default function ProfileTab({navigation}) {
   const onPressLogOutBtn = () => LogOutSheetRef?.current?.show();
 
   const onPressYesLogOut = async () => {
+   
     try {
-      await removeUserDetail(ACCESS_TOKEN);
+      await removeUserDetail("ACCESS_TOKEN");
       LogOutSheetRef?.current?.hide();
       setTimeout(() => {
         navigation.reset({

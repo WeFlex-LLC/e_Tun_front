@@ -1,14 +1,14 @@
 // Library Imports
 import {StyleSheet, View, TouchableOpacity} from 'react-native';
-import React, {memo, useEffect,useState} from 'react';
-import {useSelector} from 'react-redux';
+import React, {memo, useEffect, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Local Imports
 import strings from '../../i18n/strings';
 import {styles} from '../../themes';
 import CText from '../../components/common/CText';
-import {ACCESS_TOKEN, getHeight, moderateScale} from '../../common/constants';
+import { getHeight, moderateScale} from '../../common/constants';
 import CHeader from '../../components/common/CHeader';
 import CSafeAreaView from '../../components/common/CSafeAreaView';
 import {
@@ -22,11 +22,12 @@ import CInput from '../../components/common/CInput';
 import KeyBoardAvoidWrapper from '../../components/common/KeyBoardAvoidWrapper';
 import {validateEmail, validatePassword} from '../../utils/validators';
 import CButton from '../../components/common/CButton';
-import {setAsyncStorageData} from '../../utils/helpers';
+import {getAsyncStorageData, setAsyncStorageData} from '../../utils/helpers';
+import {changeUserInfoNameAction} from '../../redux/action/UserInfoName';
 
 const Register = ({navigation}) => {
   const colors = useSelector(state => state.theme.theme);
-
+  const dispatch = useDispatch();
   const BlurredStyle = {
     backgroundColor: colors.inputBg,
     borderColor: colors.bColor,
@@ -53,7 +54,8 @@ const Register = ({navigation}) => {
       onPress: () => onPressSignWithPassword(),
     },
   ];
-  const [Name, setName] = useState("");
+  const [Token, setToken] = useState('');
+  const [Name, setName] = useState('');
   const [PhoneNumber, setPhoneNumber] = useState();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,11 +68,13 @@ const Register = ({navigation}) => {
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [emailInputStyle, setEmailInputStyle] = useState(BlurredStyle);
   const [passwordInputStyle, setPasswordInputStyle] = useState(BlurredStyle);
-  const [PhoneNumberInputStyle, setPhoneNumberInputStyle] = useState(BlurredStyle);
+  const [PhoneNumberInputStyle, setPhoneNumberInputStyle] =
+    useState(BlurredStyle);
   const [NameInputStyle, setNameInputStyle] = useState(BlurredStyle);
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [isCheck, setIsCheck] = useState(false);
-
+  const [EmailExistError, setEmailExistError] = useState();
+  const [VerifyTokenScreen, setVerifyTokenScreen] = useState(false);
   const onFocusInput = onHighlight => onHighlight(FocusedStyle);
   const onFocusIcon = onHighlight => onHighlight(FocusedIconStyle);
   const onBlurInput = onUnHighlight => onUnHighlight(BlurredStyle);
@@ -100,11 +104,8 @@ const Register = ({navigation}) => {
     setPasswordError(msg);
   };
 
-  
-
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
- 
 
   const RenderSocialBtn = memo(({item, index}) => {
     return (
@@ -123,40 +124,70 @@ const Register = ({navigation}) => {
     );
   });
   const onPressSignWithPassword = async () => {
-    await setAsyncStorageData(ACCESS_TOKEN, 'access_token');
     // register
     try {
-      const response = await fetch('http://192.168.2.84:8000/api/users/register', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/users/register',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            fullName: Name,
+            phoneNumber: PhoneNumber,
+          }),
         },
-        body: JSON.stringify({
-          "email": email,
-          "password": password,
-          "fullName": Name,
-          "phoneNumber": PhoneNumber
-        }),
-      });
-      const x = await response.json()
-    
+      );
+      const res = await response.json();
+      if (res.error) {
+        setEmailExistError(res.message);
+      } else {
+        setVerifyTokenScreen(true);
+        await setAsyncStorageData(
+          'BIRTHDAY',
+          JSON.stringify(res.user?.birthday),
+        );
+        await setAsyncStorageData('COUNTRY', JSON.stringify(res.user?.country));
+        await setAsyncStorageData('EMAIL', JSON.stringify(res.user?.email));
+        await setAsyncStorageData(
+          'FULLNAME',
+          JSON.stringify(res.user?.fullName),
+        );
+        await setAsyncStorageData('IMG', JSON.stringify(res.user?.img));
+        dispatch(changeUserInfoNameAction(res.user?.fullName));
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
-
-    // 
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [
-    //     {
-    //       name: StackNav.SetUpProfile,
-    //       params: {title: strings.fillYourProfile},
-    //     },
-    //   ],
-    // });
+  };
+  const onPressPasteToken = async () => {
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/users/email',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: Token,
+          }),
+        },
+      );
+      const res = await response.json();
+      if (res.success) {
+        navigation.navigate(StackNav.Login);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const onPressPasswordEyeIcon = () => {
@@ -185,20 +216,24 @@ const Register = ({navigation}) => {
   );
 
   const NameIcon = () => {
-    return <Ionicons
-      name="person-outline"
-      size={moderateScale(20)}
-      color={UserIcon}
-    />
-  }
+    return (
+      <Ionicons
+        name="person-outline"
+        size={moderateScale(20)}
+        color={UserIcon}
+      />
+    );
+  };
 
   const PhoneNumberIcon = () => {
-    return <Ionicons
-      name="call-outline"
-      size={moderateScale(20)}
-      color={PhoneIcon}
-    />
-  }
+    return (
+      <Ionicons
+        name="call-outline"
+        size={moderateScale(20)}
+        color={PhoneIcon}
+      />
+    );
+  };
 
   const onFocusPassword = () => {
     onFocusInput(setPasswordInputStyle);
@@ -227,7 +262,6 @@ const Register = ({navigation}) => {
     onBlurIcon(setPhoneIcon);
   };
 
-
   const RightPasswordEyeIcon = () => (
     <TouchableOpacity
       onPress={onPressPasswordEyeIcon}
@@ -244,148 +278,180 @@ const Register = ({navigation}) => {
     navigation.navigate(StackNav.Login);
   };
 
+  const ShowEmailIsAlreadyExist = () => {
+    return (
+      <View>
+        {EmailExistError && (
+          <CText type={'b14'} style={{color: 'red'}}>
+            {EmailExistError}
+          </CText>
+        )}
+      </View>
+    );
+  };
+
   return (
     <CSafeAreaView>
       <CHeader />
       <KeyBoardAvoidWrapper>
-        <View style={localStyles.mainContainer}>
-          <CText type={'b46'} align={'left'} style={styles.mv40}>
-            {strings.createYourAccount}
-          </CText>
-          <CInput
-            placeHolder={strings.email}
-            keyBoardType={'email-address'}
-            _value={email}
-            _errorText={emailError}
-            autoCapitalize={'none'}
-            insideLeftIcon={() => <EmailIcon />}
-            toGetTextFieldValue={onChangedEmail}
-            inputContainerStyle={[
-              {backgroundColor: colors.inputBg},
-              localStyles.inputContainerStyle,
-              emailInputStyle,
-            ]}
-            inputBoxStyle={[localStyles.inputBoxStyle]}
-            _onFocus={onFocusEmail}
-            onBlur={onBlurEmail}
-          />
-
-          <CInput
-            placeHolder={strings.password}
-            keyBoardType={'default'}
-            _value={password}
-            _errorText={passwordError}
-            autoCapitalize={'none'}
-            insideLeftIcon={() => <PasswordIcon />}
-            toGetTextFieldValue={onChangedPassword}
-            inputContainerStyle={[
-              {backgroundColor: colors.inputBg},
-              localStyles.inputContainerStyle,
-              passwordInputStyle,
-            ]}
-            _isSecure={isPasswordVisible}
-            inputBoxStyle={[localStyles.inputBoxStyle]}
-            _onFocus={onFocusPassword}
-            onBlur={onBlurPassword}
-            rightAccessory={() => <RightPasswordEyeIcon />}
-          />
+        {!VerifyTokenScreen && (
+          <View style={localStyles.mainContainer}>
+            <CText type={'b46'} align={'left'} style={styles.mv40}>
+              {strings.createYourAccount}
+            </CText>
+            <ShowEmailIsAlreadyExist />
+            <CInput
+              placeHolder={strings.email}
+              keyBoardType={'email-address'}
+              _value={email}
+              _errorText={emailError}
+              autoCapitalize={'none'}
+              insideLeftIcon={() => <EmailIcon />}
+              toGetTextFieldValue={onChangedEmail}
+              inputContainerStyle={[
+                {backgroundColor: colors.inputBg},
+                localStyles.inputContainerStyle,
+                emailInputStyle,
+              ]}
+              inputBoxStyle={[localStyles.inputBoxStyle]}
+              _onFocus={onFocusEmail}
+              onBlur={onBlurEmail}
+            />
 
             <CInput
-            placeHolder={strings.fullName}
-            keyBoardType={'default'}
-            _value={Name}
-           
-            autoCapitalize={'none'}
-            insideLeftIcon={() => <NameIcon/>}
-            toGetTextFieldValue={(e) => {setName(e)}}
-            inputContainerStyle={[
-              {backgroundColor: colors.inputBg},
-              localStyles.inputContainerStyle,
-              NameInputStyle,
-            ]}
-            inputBoxStyle={[localStyles.inputBoxStyle]}
-            _onFocus={onFocusName}
-            onBlur={onBlurName}
-          />
-
-          <CInput
-            placeHolder={strings.phoneNumber}
-            keyBoardType={'phone-pad'}
-            _value={PhoneNumber}
-            autoCapitalize={'none'}
-            insideLeftIcon={() => <PhoneNumberIcon/>}
-            toGetTextFieldValue={(e) => {setPhoneNumber(e)}}
-            inputContainerStyle={[
-              {backgroundColor: colors.inputBg},
-              localStyles.inputContainerStyle,
-              PhoneNumberInputStyle,
-            ]}
-            inputBoxStyle={[localStyles.inputBoxStyle]}
-            _onFocus={onFocusPhone}
-            onBlur={onBlurPhone}
-          />
-
-{/* 
-          <TouchableOpacity
-            onPress={() => setIsCheck(!isCheck)}
-            style={localStyles.checkboxContainer}>
-            <Ionicons
-              name={isCheck ? 'square-outline' : 'checkbox'}
-              size={moderateScale(26)}
-              color={colors.primary}
-            />
-            <CText type={'s14'} style={styles.mh10}>
-              {strings.rememberMe}
-            </CText>
-          </TouchableOpacity> */}
-
-          <CButton
-            title={strings.signUp}
-            type={'S16'}
-            color={isSubmitDisabled && colors.white}
-            containerStyle={[localStyles.signBtnContainer]}
-            onPress={onPressSignWithPassword}
-            bgColor={isSubmitDisabled && colors.disabledColor}
-            // disabled={isSubmitDisabled}
-          />
-          <View style={localStyles.divider}>
-            <View
-              style={[
-                localStyles.orContainer,
-                {backgroundColor: colors.bColor},
+              placeHolder={strings.password}
+              keyBoardType={'default'}
+              _value={password}
+              _errorText={passwordError}
+              autoCapitalize={'none'}
+              insideLeftIcon={() => <PasswordIcon />}
+              toGetTextFieldValue={onChangedPassword}
+              inputContainerStyle={[
+                {backgroundColor: colors.inputBg},
+                localStyles.inputContainerStyle,
+                passwordInputStyle,
               ]}
+              _isSecure={isPasswordVisible}
+              inputBoxStyle={[localStyles.inputBoxStyle]}
+              _onFocus={onFocusPassword}
+              onBlur={onBlurPassword}
+              rightAccessory={() => <RightPasswordEyeIcon />}
             />
-            <CText type={'s18'} style={styles.mh10}>
-              {strings.or}
-            </CText>
-            <View
-              style={[
-                localStyles.orContainer,
-                {backgroundColor: colors.bColor},
+
+            <CInput
+              placeHolder={strings.fullName}
+              keyBoardType={'default'}
+              _value={Name}
+              autoCapitalize={'none'}
+              insideLeftIcon={() => <NameIcon />}
+              toGetTextFieldValue={e => {
+                setName(e);
+              }}
+              inputContainerStyle={[
+                {backgroundColor: colors.inputBg},
+                localStyles.inputContainerStyle,
+                NameInputStyle,
               ]}
+              inputBoxStyle={[localStyles.inputBoxStyle]}
+              _onFocus={onFocusName}
+              onBlur={onBlurName}
+            />
+
+            <CInput
+              placeHolder={strings.phoneNumber}
+              keyBoardType={'phone-pad'}
+              _value={PhoneNumber}
+              autoCapitalize={'none'}
+              insideLeftIcon={() => <PhoneNumberIcon />}
+              toGetTextFieldValue={e => {
+                setPhoneNumber(e);
+              }}
+              inputContainerStyle={[
+                {backgroundColor: colors.inputBg},
+                localStyles.inputContainerStyle,
+                PhoneNumberInputStyle,
+              ]}
+              inputBoxStyle={[localStyles.inputBoxStyle]}
+              _onFocus={onFocusPhone}
+              onBlur={onBlurPhone}
+            />
+
+            <CButton
+              title={strings.signUp}
+              type={'S16'}
+              color={isSubmitDisabled && colors.white}
+              containerStyle={[localStyles.signBtnContainer]}
+              onPress={onPressSignWithPassword}
+              bgColor={isSubmitDisabled && colors.disabledColor}
+              // disabled={isSubmitDisabled}
+            />
+            <View style={localStyles.divider}>
+              <View
+                style={[
+                  localStyles.orContainer,
+                  {backgroundColor: colors.bColor},
+                ]}
+              />
+              <CText type={'s18'} style={styles.mh10}>
+                {strings.or}
+              </CText>
+              <View
+                style={[
+                  localStyles.orContainer,
+                  {backgroundColor: colors.bColor},
+                ]}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={onPressSignIn}
+              style={localStyles.signUpContainer}>
+              <CText
+                type={'b16'}
+                color={colors.dark ? colors.grayScale7 : colors.grayScale5}>
+                {strings.AlreadyHaveAccount}
+              </CText>
+              <CText type={'b16'} color={colors.primary}>
+                {' '}
+                {strings.signIn}
+              </CText>
+            </TouchableOpacity>
+          </View>
+        )}
+        {VerifyTokenScreen && (
+          <View style={localStyles.mainContainer}>
+            <CText type={'b46'} align={'left'} style={styles.mv40}>
+              {'Paste Your Token'}
+            </CText>
+            <CInput
+              placeHolder={'token'}
+              keyBoardType={'default'}
+              _value={Token}
+              autoCapitalize={'none'}
+              // insideLeftIcon={() => <NameIcon />}
+              toGetTextFieldValue={e => {
+                setToken(e);
+              }}
+              inputContainerStyle={[
+                {backgroundColor: colors.inputBg},
+                localStyles.inputContainerStyle,
+                NameInputStyle,
+              ]}
+              inputBoxStyle={[localStyles.inputBoxStyle]}
+              _onFocus={onFocusName}
+              onBlur={onBlurName}
+            />
+            <CButton
+              title={strings.signUp}
+              type={'S16'}
+              color={isSubmitDisabled && colors.white}
+              containerStyle={[localStyles.signBtnContainer]}
+              onPress={onPressPasteToken}
+              bgColor={isSubmitDisabled && colors.disabledColor}
+              // disabled={isSubmitDisabled}
             />
           </View>
-
-          {/* <View style={localStyles.socialBtnContainer}>
-            {socialIcon.map((item, index) => (
-              <RenderSocialBtn item={item} key={index.toString()} />
-            ))}
-          </View> */}
-
-          <TouchableOpacity
-            onPress={onPressSignIn}
-            style={localStyles.signUpContainer}>
-            <CText
-              type={'b16'}
-              color={colors.dark ? colors.grayScale7 : colors.grayScale5}>
-              {strings.AlreadyHaveAccount}
-            </CText>
-            <CText type={'b16'} color={colors.primary}>
-              {' '}
-              {strings.signIn}
-            </CText>
-          </TouchableOpacity>
-        </View>
+        )}
       </KeyBoardAvoidWrapper>
     </CSafeAreaView>
   );

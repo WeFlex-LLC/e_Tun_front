@@ -1,7 +1,7 @@
 // Library import
 import {StyleSheet, View} from 'react-native';
-import React, {useState} from 'react';
-import {useSelector} from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 
 // Local import
@@ -17,27 +17,40 @@ import CButton from '../../components/common/CButton';
 import typography from '../../themes/typography';
 import SuccessModal from '../../components/models/SuccessModal';
 import {RefundSuccessfullIcon} from '../../assets/svgs';
+import {getAsyncStorageData, setAsyncStorageData} from '../../utils/helpers';
+import { changeUserInfoNameAction } from '../../redux/action/UserInfoName';
 
-const SetPin = ({navigation, route}) => {
+const CheckPin = ({navigation, route}) => {
   const colors = useSelector(state => state.theme.theme);
   const title = route.params?.title;
-  const isRefund = route.params?.isRefund;
   const [pin, setPin] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
   const [Status, setStatus] = useState(route.params?.status);
-  const token = route.params?.token;
+  const [IncorrectPin, setIncorrectPin] = useState('');
+  const [RefreshToken, setRefreshToken] = useState();
+  const dispatch = useDispatch();
 
-  const SetFirstPin = async () => {
+  _retrieveInfoUser = async () => {
+    const refreshToken = await getAsyncStorageData('REFRESH_TOKEN');
+    if (refreshToken !== null) {
+      setRefreshToken(refreshToken);
+    }
+  };
+  useEffect(() => {
+    _retrieveInfoUser();
+  }, []);
+  11;
+
+  const AsyncCheckPin = async () => {
     if (!Status) {
       try {
         const response = await fetch(
-          'https://etunbackend-production.up.railway.app/api/users/pin',
+          'https://etunbackend-production.up.railway.app/auth/user/pin',
           {
             method: 'POST',
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${RefreshToken}`,
             },
             body: JSON.stringify({
               pin: pin,
@@ -45,11 +58,15 @@ const SetPin = ({navigation, route}) => {
           },
         );
         const res = await response.json();
-
         
-        if (res.success) {
+        if (res.access_token) {
+          await setAsyncStorageData('ACCESS_TOKEN', res.access_token);
+          await setAsyncStorageData('FULLNAME', res.user.fullName);
+          await setAsyncStorageData('SUB', res.user.sub);
+          await setAsyncStorageData('EMAIL', res.user.email);
+          dispatch(changeUserInfoNameAction(res.user.fullName));
+          // await setAsyncStorageData('IMG', res.user.img);
           setStatus(true);
-          // await setAsyncStorageData('PIN', pin);
           navigation.reset({
             index: 0,
             routes: [
@@ -58,6 +75,8 @@ const SetPin = ({navigation, route}) => {
               },
             ],
           });
+        }else if(res.message){
+          setIncorrectPin(res.message)
         }
       } catch (error) {
         console.log(error);
@@ -65,38 +84,24 @@ const SetPin = ({navigation, route}) => {
     }
   };
 
-  const onPressModalClose = () => setModalVisible(false);
-
   const onPinChange = code => setPin(code);
-  const onPressPinContinue = () => {
-    // if (!!title) {
-    // setModalVisible(true);
-    // } else {
-    //   navigation.navigate(StackNav.SetSecure);
-    // }
-  };
 
-  const onPressERiceipt = () => {
-    setModalVisible(false);
-    navigation.navigate(StackNav.EReceipt, {item: ''});
-  };
+  const ErrorMessage = () => {
 
-  // const onPressChat = () => {
-  //   setModalVisible(false);
-  //   navigation.navigate(StackNav.CustomerService, {title: 'Lucy'});
-  // };
-  // const onPressOk = () => {
-  //   setModalVisible(false);
-  //   navigation.navigate(TabNav.BookingsTab);
-  // };
+    return (
+      <View>
+          <CText type="b20" align={"center"} style={{color:"red"}}>{IncorrectPin}</CText>
+      </View>
+    )
+  }
 
   return (
     <CSafeAreaView>
-      <CHeader title={!!title ? title : strings.createNewPin} />
+      {/* <CHeader title={"Check Pin"} /> */}
       <KeyBoardAvoidWrapper contentContainerStyle={styles.flexGrow1}>
         <View style={localStyles.root}>
           <CText type={'r18'} align={'center'}>
-            {!!title ? strings.enterPINPayment : strings.pinDesc}
+            {'Check Pin'}
           </CText>
           <OTPInputView
             pinCount={6}
@@ -117,36 +122,20 @@ const SetPin = ({navigation, route}) => {
             style={localStyles.inputStyle}
             secureTextEntry={true}
           />
+          <ErrorMessage/>
         </View>
         <CButton
           type={'S16'}
           title={strings.continue}
-          onPress={SetFirstPin}
+          onPress={AsyncCheckPin}
           containerStyle={localStyles.btnContainerStyle}
-        />
-        <SuccessModal
-          visible={modalVisible}
-          onPressModalClose={onPressModalClose}
-          itemImage={<RefundSuccessfullIcon style={styles.selfCenter} />}
-          headerTitle={
-            isRefund
-              ? strings.cancelBookingSuccessful
-              : strings.bookingSuccessful
-          }
-          subTitle={
-            isRefund ? strings.cancelBookingSucDesc : strings.bookingSucDesc
-          }
-          // btnText1={isRefund ? strings.ok : strings.viewEReceipt}
-          // btnText2={isRefund ? '' : strings.messageWorkers}
-          // onPressBtn1={isRefund ? onPressOk : onPressERiceipt}
-          // onPressBtn2={isRefund ? () => {} : onPressChat}
         />
       </KeyBoardAvoidWrapper>
     </CSafeAreaView>
   );
 };
 
-export default SetPin;
+export default CheckPin;
 
 const localStyles = StyleSheet.create({
   root: {

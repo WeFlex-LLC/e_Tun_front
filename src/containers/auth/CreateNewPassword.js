@@ -21,6 +21,7 @@ import {StackNav} from '../../navigation/NavigationKeys';
 import SuccessModal from '../../components/models/SuccessModal';
 import CButton from '../../components/common/CButton';
 import {NewPassWordDark, NewPassWordLight} from '../../assets/svgs';
+import {getAsyncStorageData} from '../../utils/helpers';
 
 const CreateNewPassword = ({navigation}) => {
   const colors = useSelector(state => state.theme.theme);
@@ -41,6 +42,7 @@ const CreateNewPassword = ({navigation}) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [IncorrectPassword, setIncorrectPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(true);
@@ -52,7 +54,6 @@ const CreateNewPassword = ({navigation}) => {
   const [confirmPasswordIcon, setConfirmPasswordIcon] =
     useState(BlurredIconStyle);
   const [isCheck, setIsCheck] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
 
   const onFocusInput = onHighlight => onHighlight(FocusedStyle);
   const onFocusIcon = onHighlight => onHighlight(FocusedIconStyle);
@@ -105,11 +106,44 @@ const CreateNewPassword = ({navigation}) => {
     onBlurIcon(setConfirmPasswordIcon);
   };
 
-  const onPressContinue = () => {
-    setModalVisible(true);
-    navigation.navigate(StackNav.Login);
+  const AsyncChangePassword = async () => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/users/password',
+        {
+          method: 'PUT',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            oldPassword: password,
+            newPassword: confirmPassword,
+          }),
+        },
+      );
+      const res = await response.json();
+      if (res.success) {
+        navigation.navigate(StackNav.TabBar);
+      } else {
+        setIncorrectPassword(res.message)
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const onPressModalClose = () => setModalVisible(false);
+
+  const ErrorMessage = () => {
+
+    return (
+      <View>
+          <CText type="b20" align={"center"} style={{color:"red"}}>{IncorrectPassword}</CText>
+      </View>
+    )
+  }
 
   return (
     <CSafeAreaView>
@@ -132,6 +166,7 @@ const CreateNewPassword = ({navigation}) => {
           <CText type={'m20'} style={styles.mt30}>
             {strings.createYourNewPassword}
           </CText>
+          <ErrorMessage/>
           <CInput
             placeHolder={strings.password}
             keyBoardType={'default'}
@@ -184,29 +219,13 @@ const CreateNewPassword = ({navigation}) => {
               />
             )}
           />
-          <TouchableOpacity
-            onPress={() => setIsCheck(!isCheck)}
-            style={localStyles.checkboxContainer}>
-            <Ionicons
-              name={isCheck ? 'square-outline' : 'checkbox'}
-              size={moderateScale(26)}
-              color={colors.primary}
-            />
-            <CText type={'r18'} style={styles.mh10}>
-              {strings.rememberMe}
-            </CText>
-          </TouchableOpacity>
         </View>
       </KeyBoardAvoidWrapper>
       <CButton
         type={'S16'}
         title={strings.continue}
-        onPress={onPressContinue}
+        onPress={AsyncChangePassword}
         containerStyle={styles.m20}
-      />
-      <SuccessModal
-        visible={modalVisible}
-        onPressModalClose={onPressModalClose}
       />
     </CSafeAreaView>
   );

@@ -19,6 +19,8 @@ import HomeProductComponent from '../../../components/homeComponent/HomeProductC
 import {StackNav} from '../../../navigation/NavigationKeys';
 import images from '../../../assets/images';
 import strings from '../../../i18n/strings';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { getAsyncStorageData } from '../../../utils/helpers';
 
 const RenderHeaderItem = React.memo(() => {
   const colors = useSelector(state => state.theme.theme);
@@ -84,13 +86,76 @@ export default function HomeTab({navigation}) {
     setExtraData(!extraData);
   }, [colors]);
 
-  const onPressItem = item => {
-    if (item.title === strings.more) {
-      return navigation.navigate(StackNav.AllService);
-    } else {
-      return navigation.navigate(StackNav.ProductCategory, {item: item});
+
+  const [isCategoriesSingleLoading, setIsCategoriesSingleLoading] = useState(true);
+
+  
+  const onPressItem = async item => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+    
+    try {
+      const response = await fetch(
+        `https://etunbackend-production.up.railway.app/api/services?categoryId=${item.id}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const CategoriesSingle = await response.json();
+        // console.log('====================================');
+        // console.log(CategoriesSingle);
+        // console.log('====================================');
+      if (CategoriesSingle) {
+        return navigation.navigate(StackNav.ProductCategory, {item: CategoriesSingle , title: item});
+      } else {
+        return navigation.navigate(StackNav.AllService);
+      }
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsCategoriesSingleLoading(false);
+    }
+
+    
+  };
+
+  const [isLoading, setLoading] = useState(true);
+  const [Categoriesdata, setCategoriesdata] = useState([]);
+
+  const getCategories = async () => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+    
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/services/categories', {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const res = await response.json();
+      setCategoriesdata(res);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
+  
+  // console.log(language);
+  const language = useSelector(state => state?.profile?.language);
 
   const renderCategoryItem = ({item, index}) => {
     return (
@@ -98,14 +163,16 @@ export default function HomeTab({navigation}) {
         key={index}
         onPress={() => onPressItem(item)}
         style={localStyles.categoryRoot}>
-        {item?.image}
+          <View style={localStyles.iconContainer} >
+            <MaterialIcons name={item.icon}  size={30} color={'#7210FF'} />
+          </View>
         <CText
           type="b16"
           numberOfLines={1}
           align={'center'}
           color={colors.primaryTextColor}
           style={styles.mt10}>
-          {item.title}
+          {language  == "Armenian" ? item.name_am : language  == "Russian" ? item.name_ru : item.name_en}
         </CText>
       </TouchableOpacity>
     );
@@ -114,8 +181,8 @@ export default function HomeTab({navigation}) {
   return (
     <View style={[localStyles.root, {backgroundColor: colors.backgroundColor}]}>
       <FlashList
-        data={homeCategoryData}
-        extraData={extraData}
+        data={Categoriesdata}
+        extraData={language}
         renderItem={renderCategoryItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={4}
@@ -138,15 +205,20 @@ const localStyles = StyleSheet.create({
     height: moderateScale(30),
   },
   iconContainer: {
+    display: "flex",
+    ...styles.center,
     width: moderateScale(60),
     height: moderateScale(60),
     borderRadius: moderateScale(30),
-    backgroundColor: commonColor.grayScale3,
+    // backgroundColor: commonColor.grayScale3,
+    borderColor: "#7210FF",
+    borderWidth: 1,
     ...styles.center,
+    // backgroundColor: "none"
   },
   categoryRoot: {
     width: '100%',
     ...styles.itemsCenter,
-    ...styles.mv10,
+    ...styles.mv15,
   },
 });

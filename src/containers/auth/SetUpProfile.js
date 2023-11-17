@@ -1,9 +1,8 @@
 // Libraries import
 import {StyleSheet, Image, TouchableOpacity, View} from 'react-native';
 import React, {createRef, useState, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Dropdown} from 'react-native-element-dropdown';
 import ImagePicker from 'react-native-image-crop-picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CountryPicker, {
@@ -24,14 +23,15 @@ import KeyBoardAvoidWrapper from '../../components/common/KeyBoardAvoidWrapper';
 import {StackNav} from '../../navigation/NavigationKeys';
 import ProfilePicture from '../../components/models/ProfilePicture';
 import CButton from '../../components/common/CButton';
-import {GenderData} from '../../api/constant';
 import {EditDark, EditLight} from '../../assets/svgs';
 import CText from '../../components/common/CText';
+import { getAsyncStorageData, setAsyncStorageData } from '../../utils/helpers';
+import { changeUserInfoNameAction } from '../../redux/action/UserInfoName';
 
 const SetUpProfile = props => {
   const {navigation} = props;
   const headerTitle = props.route?.params?.title;
-
+  const dispatch = useDispatch()
   const colors = useSelector(state => state.theme.theme);
   const ProfilePictureSheetRef = createRef();
   const BlurredStyle = {
@@ -46,18 +46,10 @@ const SetUpProfile = props => {
   const BlurredIconStyle = colors.grayScale5;
   const FocusedIconStyle = colors.primary;
 
-  const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
-  const [nickname, setNickname] = useState('');
   const [phoneNo, setPhoneNo] = useState('');
-  const [address, setAddress] = useState('');
-  const [gender, setGender] = useState('');
-  const [emailInputStyle, setEmailInputStyle] = useState(BlurredStyle);
   const [fullNameInputStyle, setFullNameInputStyle] = useState(BlurredStyle);
   const [phoneNoInputStyle, setPhoneNoInputStyle] = useState(BlurredStyle);
-  const [nicknameInputStyle, setNicknameInputStyle] = useState(BlurredStyle);
-  const [addressInputStyle, setAddressInputStyle] = useState(BlurredStyle);
-  const [emailIcon, setEmailIcon] = useState(BlurredIconStyle);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [selectImage, setSelectImage] = useState('');
@@ -72,36 +64,20 @@ const SetUpProfile = props => {
   const onBlurInput = onUnHighlight => onUnHighlight(BlurredStyle);
   const onBlurIcon = onUnHighlight => onUnHighlight(BlurredIconStyle);
 
-  const onFocusEmail = () => {
-    onFocusInput(setEmailInputStyle);
-    onFocusIcon(setEmailIcon);
-  };
-  const onBlurEmail = () => {
-    onBlurInput(setEmailInputStyle);
-    onBlurIcon(setEmailIcon);
-  };
-
   const onFocusFullName = () => onFocusInput(setFullNameInputStyle);
-  const onFocusNickName = () => onFocusInput(setNicknameInputStyle);
-  const onFocusAddress = () => onFocusInput(setAddressInputStyle);
   const onFocusPhoneNo = () => {
     onFocusInput(setPhoneNoInputStyle);
     onFocusIcon(setChevronDown);
   };
 
   const onBlurFullName = () => onBlurInput(setFullNameInputStyle);
-  const onBlurNickName = () => onBlurInput(setNicknameInputStyle);
-  const onBlurAddress = () => onBlurInput(setAddressInputStyle);
   const onBlurPhoneNo = () => {
     onBlurInput(setPhoneNoInputStyle);
     onBlurIcon(setChevronDown);
   };
 
   const onChangedFullName = text => setFullName(text);
-  const onChangedNickName = text => setNickname(text);
   const onChangedPhoneNo = text => setPhoneNo(text);
-  const onChangedEmail = text => setEmail(text);
-  const onAddress = text => setAddress(text);
 
   useEffect(() => {
     ProfilePictureSheetRef?.current?.hide();
@@ -129,7 +105,7 @@ const SetUpProfile = props => {
 
   const onPressCamera = () => {
     ImagePicker.openCamera({
-      // cropping: true,
+      cropping: true,
       mediaType: 'photo',
       includeBase64: true,
     }).then(image => {
@@ -146,17 +122,59 @@ const SetUpProfile = props => {
     });
   };
 
-  const onPressUpdate = () => {};
-
-  const onPressContinue = () => navigation.navigate(StackNav.SetPin);
-
   const onPressProfilePic = () => ProfilePictureSheetRef?.current.show();
-
   const onPressCalender = () => setDatePickerVisible(true);
 
-  const EmailIcon = () => (
-    <Ionicons name="mail" size={moderateScale(20)} color={emailIcon} />
-  );
+  const onPressEditProfile = async () => {
+
+    const name = await getAsyncStorageData('FULLNAME');
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+
+    let formData = new FormData();
+    formData.append('img', {
+      uri: selectImage.path,
+      type: selectImage.mime,
+      name: selectImage.data,
+    });
+    formData.append("fullName",fullName );
+    formData.append("phoneNumber",phoneNo );
+    const data = new FormData();
+      // data.append('image', {
+        // uri: image.uri,
+        // type: image.type,
+        // name: image.fileName,
+      // });
+    // console.log('====================================');
+    // console.log(selectImage);
+    // console.log('====================================');
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/users',
+        {
+          method: 'PUT',
+          headers: {
+            // Accept: 'multipart/form-data',
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        },
+        );
+        const res = await response.json();
+        console.log('====================================');
+        console.log(res);
+        console.log('====================================');
+        
+      if (res.success) {
+        await setAsyncStorageData('BIRTHDAY', JSON.stringify(dateOfBirth));
+        await setAsyncStorageData('FULLNAME', JSON.stringify(fullName));
+        dispatch(changeUserInfoNameAction(fullName));
+        navigation.navigate(StackNav.CheckPin);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const countryIcon = () => {
     return (
@@ -221,19 +239,7 @@ const SetUpProfile = props => {
           _onFocus={onFocusFullName}
           onBlur={onBlurFullName}
         />
-        {/* <CInput
-          placeHolder={strings.nickname}
-          _value={nickname}
-          autoCapitalize={'none'}
-          toGetTextFieldValue={onChangedNickName}
-          inputContainerStyle={[
-            {backgroundColor: colors.inputBg},
-            localStyles.inputContainerStyle,
-            nicknameInputStyle,
-          ]}
-          _onFocus={onFocusNickName}
-          onBlur={onBlurNickName}
-        /> */}
+
         <TouchableOpacity
           onPress={onPressCalender}
           style={[
@@ -264,21 +270,6 @@ const SetUpProfile = props => {
           minimumDate={new Date()}
         />
         <CInput
-          placeHolder={strings.email}
-          keyBoardType={'email-address'}
-          _value={email}
-          autoCapitalize={'none'}
-          toGetTextFieldValue={onChangedEmail}
-          rightAccessory={() => <EmailIcon />}
-          inputContainerStyle={[
-            {backgroundColor: colors.inputBg},
-            localStyles.inputContainerStyle,
-            emailInputStyle,
-          ]}
-          _onFocus={onFocusEmail}
-          onBlur={onBlurEmail}
-        />
-        <CInput
           placeHolder={strings.phoneNumber}
           keyBoardType={'number-pad'}
           _value={phoneNo}
@@ -293,19 +284,6 @@ const SetUpProfile = props => {
           _onFocus={onFocusPhoneNo}
           onBlur={onBlurPhoneNo}
         />
-        {/* <CInput
-          placeHolder={strings.address}
-          _value={address}
-          autoCapitalize={'none'}
-          toGetTextFieldValue={onAddress}
-          inputContainerStyle={[
-            {backgroundColor: colors.inputBg},
-            localStyles.inputContainerStyle,
-            addressInputStyle,
-          ]}
-          _onFocus={onFocusAddress}
-          onBlur={onBlurAddress}
-        /> */}
       </KeyBoardAvoidWrapper>
 
       <CButton
@@ -316,7 +294,7 @@ const SetUpProfile = props => {
             : strings.continue
         }
         onPress={
-          headerTitle === strings.editProfile ? onPressUpdate : onPressContinue
+          onPressEditProfile
         }
         containerStyle={localStyles.continueBtnStyle}
       />

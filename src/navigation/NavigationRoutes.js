@@ -61,6 +61,16 @@ import Shifting from '../containers/tabbar/category/Shifting';
 import ShiftingAddress from '../containers/tabbar/category/ShiftingAddress';
 import Painting from '../containers/tabbar/category/Painting';
 import EditProfile from '../containers/tabbar/profile/EditProfile';
+import AddAddressForOwner from '../containers/tabbar/calendar/AddAddressForOwner';
+import PayService from '../containers/tabbar/calendar/PayService';
+import PayPartially from '../containers/tabbar/calendar/PayPartially';
+import AddYourService from '../containers/tabbar/calendar/AddYourService';
+import ChooseServiceCompany from '../containers/tabbar/calendar/ChooseServiceCompany';
+import CheckPin from '../containers/auth/CheckPin';
+import UpdatePin from '../containers/auth/UpdatePin';
+
+
+
 
 export const TabRoute = {
   HomeTab,
@@ -79,6 +89,8 @@ export const StackRoute = {
   Connect,
   SelectInterest,
   SetPin,
+  CheckPin,
+  UpdatePin,
   SetUpProfile,
   SetSecure,
   ForgotPassword,
@@ -126,4 +138,9 @@ export const StackRoute = {
   ShiftingAddress,
   Painting,
   EditProfile,
+  AddAddressForOwner,
+  PayService,
+  PayPartially,
+  AddYourService,
+  ChooseServiceCompany
 };

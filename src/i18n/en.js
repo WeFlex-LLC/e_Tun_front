@@ -173,6 +173,8 @@ export default {
   save: 'Save',
   addNewAddress: 'Add New Address',
   addressName: 'Address Name',
+  AddApartmentNumber: 'Add Apartment Number',
+  ApartmentNumber: 'Apartment Number',
   add: 'Add',
   cardName: 'Card Name',
   invite: 'Invite',
@@ -361,5 +363,7 @@ export default {
   destination: 'Destination',
   selectCountry: 'Select Country',
   locationDetails: 'Location Details',
-  housesTab: "Houses" 
+  housesTab: "Houses",
+  payPartially: "Pay Partially",
+  accountNumber: "Բաժանորդային Համար",
 }; 

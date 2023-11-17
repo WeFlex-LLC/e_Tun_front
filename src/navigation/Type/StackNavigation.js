@@ -53,6 +53,8 @@ export default function StackNavigation() {
         component={StackRoute.CreateNewPassword}
       />
       <Stack.Screen name={StackNav.SetPin} component={StackRoute.SetPin} />
+      <Stack.Screen name={StackNav.CheckPin} component={StackRoute.CheckPin} />
+      <Stack.Screen name={StackNav.UpdatePin} component={StackRoute.UpdatePin} />
       <Stack.Screen
         name={StackNav.InviteFriends}
         component={StackRoute.InviteFriends}
@@ -138,6 +140,26 @@ export default function StackNavigation() {
       <Stack.Screen
         name={StackNav.EditProfile}
         component={StackRoute.EditProfile}
+      />
+      <Stack.Screen
+        name={StackNav.AddAddressForOwner}
+        component={StackRoute.AddAddressForOwner}
+      />
+      <Stack.Screen
+        name={StackNav.PayService}
+        component={StackRoute.PayService}
+      />
+       <Stack.Screen
+        name={StackNav.PayPartially}
+        component={StackRoute.PayPartially}
+      />
+      <Stack.Screen
+        name={StackNav.AddYourService}
+        component={StackRoute.AddYourService}
+      />
+      <Stack.Screen
+        name={StackNav.ChooseServiceCompany}
+        component={StackRoute.ChooseServiceCompany}
       />
     </Stack.Navigator>
   );

@@ -49,22 +49,22 @@ export default Security = ({navigation}) => {
           faceId: isEnabled.faceId ? false : true,
         }),
     },
-    {
-      title: strings.biometricId,
-      rightIcon: true,
-      value: isEnabled.biometricId,
-      toggleSwitch: () =>
-        setIsEnabled({
-          ...isEnabled,
-          biometricId: isEnabled.biometricId ? false : true,
-        }),
-    },
+    // {
+    //   title: strings.biometricId,
+    //   rightIcon: true,
+    //   value: isEnabled.biometricId,
+    //   toggleSwitch: () =>
+    //     setIsEnabled({
+    //       ...isEnabled,
+    //       biometricId: isEnabled.biometricId ? false : true,
+    //     }),
+    // },
     // {
     //   title: strings.googleAuthenticator,
     // },
   ];
 
-  const onPressChangePin = () => navigation.navigate(StackNav.SetPin);
+  const onPressChangePin = () => navigation.navigate(StackNav.UpdatePin);
   const onPressChangePassword = () =>
     navigation.navigate(StackNav.CreateNewPassword);
 

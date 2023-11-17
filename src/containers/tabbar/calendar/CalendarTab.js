@@ -1,5 +1,12 @@
 // Library Imports
-import {StyleSheet, TouchableOpacity, View, Image} from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Image,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 // import {FlashList} from '@shopify/flash-list';
@@ -21,7 +28,7 @@ import {
 } from '../../../assets/svgs';
 // import RenderNullComponent from '../../../components/RenderNullComponent';
 import {deviceWidth, getHeight, moderateScale} from '../../../common/constants';
-// import {StackNav} from '../../../navigation/NavigationKeys';
+import {StackNav} from '../../../navigation/NavigationKeys';
 // import SubHeader from '../../../components/SubHeader';
 // import {upcomingData} from '../../../api/constant';
 // import CalendarComponent from '../../../components/CalendarComponent';
@@ -111,22 +118,25 @@ export default function CalendarTab({}) {
     );
   };
 
-
-  // const onPressAddAddress = () => navigation.navigate(StackNav.AddAddress);
+  const onPressAddAddress = () =>
+    navigation.navigate(StackNav.AddAddressForOwner);
+  const onPressPayService = title => {
+    navigation.navigate(StackNav.PayService, {title: title});
+  };
 
   const FlashListFooter = () => {
     return (
       <View style={styles.ph20}>
-        {(
+        {
           <CButton
             title={strings.addNewAddress}
             type={'S16'}
             color={!!colors.dark ? colors.white : colors.primary}
             bgColor={colors.dark3}
             containerStyle={styles.mb20}
-            // onPress={onPressAddAddress}
+            onPress={onPressAddAddress}
           />
-        )}
+        }
       </View>
     );
   };
@@ -199,9 +209,8 @@ export default function CalendarTab({}) {
         isLeftIcon={<LeftIcon />}
         // rightIcon={<RightIcon />}
       />
-      <View style={localStyles.root}>
-        {/* hin calendar-i koder@ */}
-        {/* <FlashList
+      {/* hin calendar-i koder@ */}
+      {/* <FlashList
           data={upcomingData}
           extraData={extraData}
           renderItem={renderItem}
@@ -220,48 +229,51 @@ export default function CalendarTab({}) {
           }
           estimatedItemSize={20}
         /> */}
-
-       
+      <View style={localStyles.root}>
+        <ScrollView>
           {AddressData?.map(({id, title, address, isDefault}) => {
-
-            return(
+            return (
               <TouchableOpacity
-              // onPress={onPressAddress}
-              style={[
-                localStyles.addressContainer,
-               
-                {backgroundColor: colors.dark ? colors.inputBg : colors.grayScale1},
-              ]}>
-              <View style={localStyles.innerContainer} key={id}>
-                {colors.dark ? <LocationDark /> : <LocationLight />}
-                <View style={localStyles.defaultTextContainer}>
-                  <View style={localStyles.titleStyle}>
-                    <CText type={'B18'}>{title}</CText>
-                    {isDefault && (
-                      <View
-                        style={[
-                          localStyles.defaultContainer,
-                          {backgroundColor: colors.dark3},
-                        ]}>
-                        <CText type={'s12'}>{strings.default}</CText>
-                      </View>
-                    )}
+                onPress={() => onPressPayService(title)}
+                style={[
+                  localStyles.addressContainer,
+                  {
+                    backgroundColor: colors.dark
+                      ? colors.inputBg
+                      : colors.grayScale1,
+                  },
+                ]}>
+                <View style={localStyles.innerContainer} key={id}>
+                  {colors.dark ? <LocationDark /> : <LocationLight />}
+                  <View style={localStyles.defaultTextContainer}>
+                    <View style={localStyles.titleStyle}>
+                      <CText type={'B18'}>{title}</CText>
+                      {isDefault && (
+                        <View
+                          style={[
+                            localStyles.defaultContainer,
+                            {backgroundColor: colors.dark3},
+                          ]}>
+                          <CText type={'s12'}>{strings.default}</CText>
+                        </View>
+                      )}
+                    </View>
+                    <CText type={'r14'} style={styles.mt2}>
+                      {address}
+                    </CText>
                   </View>
-                  <CText type={'r14'} style={styles.mt2}>
-                    {address}
-                  </CText>
-                </View>
-                <Ionicons
+                  <Ionicons
                     name="chevron-forward-outline"
                     size={moderateScale(20)}
                     color={color.dark ? color.white : color.darkColor}
                   />
-              </View>
-          </TouchableOpacity>
-
-            )
+                </View>
+              </TouchableOpacity>
+            );
           })}
-          <FlashListFooter/>
+
+          <FlashListFooter />
+        </ScrollView>
       </View>
     </CSafeAreaView>
   );
@@ -271,7 +283,7 @@ const localStyles = StyleSheet.create({
   root: {
     ...styles.flex,
   },
-  
+
   addressContainer: {
     ...styles.p15,
     ...styles.mh20,
@@ -279,9 +291,6 @@ const localStyles = StyleSheet.create({
     ...styles.rowSpaceBetween,
     borderRadius: moderateScale(15),
     ...styles.shadowStyle,
-    // ...styles.flexColumn,
-    // flex: 1
-    
   },
   defaultTextContainer: {
     ...styles.mh10,

@@ -20,12 +20,12 @@ import {StackNav} from '../../../navigation/NavigationKeys';
 import images from '../../../assets/images';
 import strings from '../../../i18n/strings';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { getAsyncStorageData } from '../../../utils/helpers';
+import {getAsyncStorageData} from '../../../utils/helpers';
 
-const RenderHeaderItem = React.memo(() => {
+const RenderHeaderItem = React.memo(({AllData}) => {
+
   const colors = useSelector(state => state.theme.theme);
   const navigation = useNavigation();
-  const [search, setSearch] = useState('');
 
   const onPressSpecialOffer = useCallback(
     () => navigation.navigate(StackNav.SpecialOffers),
@@ -33,16 +33,13 @@ const RenderHeaderItem = React.memo(() => {
   );
 
   const onPressService = useCallback(
-    () => navigation.navigate(StackNav.AllService),
+    () => navigation.navigate(StackNav.AllService,{AllData}),
     [],
   );
-
-  const onSearchInput = useCallback(text => setSearch(text), []);
 
   return (
     <View>
       <HomeHeader />
-      {/* <SearchComponent search={search} onSearchInput={onSearchInput} /> */}
       <SubHeader
         title1={strings.specialOffers}
         title2={strings.seeAll}
@@ -86,41 +83,38 @@ export default function HomeTab({navigation}) {
     setExtraData(!extraData);
   }, [colors]);
 
+  const [isCategoriesSingleLoading, setIsCategoriesSingleLoading] =
+    useState(true);
 
-  const [isCategoriesSingleLoading, setIsCategoriesSingleLoading] = useState(true);
-
-  
   const onPressItem = async item => {
     const token = await getAsyncStorageData('ACCESS_TOKEN');
-    
+
     try {
       const response = await fetch(
-        `https://etunbackend-production.up.railway.app/api/services?categoryId=${item.id}`, {
+        `https://etunbackend-production.up.railway.app/api/services?categoryId=${item.id}`,
+        {
           method: 'GET',
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       const CategoriesSingle = await response.json();
-        // console.log('====================================');
-        // console.log(CategoriesSingle);
-        // console.log('====================================');
       if (CategoriesSingle) {
-        return navigation.navigate(StackNav.ProductCategory, {item: CategoriesSingle , title: item});
+        return navigation.navigate(StackNav.ProductCategory, {
+          item: CategoriesSingle,
+          title: item,
+        });
       } else {
         return navigation.navigate(StackNav.AllService);
       }
-
     } catch (error) {
       console.error(error);
     } finally {
       setIsCategoriesSingleLoading(false);
     }
-
-    
   };
 
   const [isLoading, setLoading] = useState(true);
@@ -128,17 +122,18 @@ export default function HomeTab({navigation}) {
 
   const getCategories = async () => {
     const token = await getAsyncStorageData('ACCESS_TOKEN');
-    
+
     try {
       const response = await fetch(
-        'https://etunbackend-production.up.railway.app/api/services/categories', {
+        'https://etunbackend-production.up.railway.app/api/services/categories',
+        {
           method: 'GET',
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       const res = await response.json();
       setCategoriesdata(res);
@@ -153,8 +148,6 @@ export default function HomeTab({navigation}) {
     getCategories();
   }, []);
 
-  
-  // console.log(language);
   const language = useSelector(state => state?.profile?.language);
 
   const renderCategoryItem = ({item, index}) => {
@@ -163,16 +156,20 @@ export default function HomeTab({navigation}) {
         key={index}
         onPress={() => onPressItem(item)}
         style={localStyles.categoryRoot}>
-          <View style={localStyles.iconContainer} >
-            <MaterialIcons name={item.icon}  size={30} color={'#7210FF'} />
-          </View>
+        <View style={localStyles.iconContainer}>
+          <MaterialIcons name={item.icon} size={30} color={'#7210FF'} />
+        </View>
         <CText
           type="b16"
           numberOfLines={1}
           align={'center'}
           color={colors.primaryTextColor}
           style={styles.mt10}>
-          {language  == "Armenian" ? item.name_am : language  == "Russian" ? item.name_ru : item.name_en}
+          {language == 'Armenian'
+            ? item.name_am
+            : language == 'Russian'
+            ? item.name_ru
+            : item.name_en}
         </CText>
       </TouchableOpacity>
     );
@@ -187,7 +184,7 @@ export default function HomeTab({navigation}) {
         keyExtractor={(item, index) => index.toString()}
         numColumns={4}
         estimatedItemSize={10}
-        ListHeaderComponent={<RenderHeaderItem />}
+        ListHeaderComponent={<RenderHeaderItem AllData={Categoriesdata}/>}
         ListFooterComponent={<RenderFooterItem />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.ph20}
@@ -205,13 +202,13 @@ const localStyles = StyleSheet.create({
     height: moderateScale(30),
   },
   iconContainer: {
-    display: "flex",
+    display: 'flex',
     ...styles.center,
     width: moderateScale(60),
     height: moderateScale(60),
     borderRadius: moderateScale(30),
     // backgroundColor: commonColor.grayScale3,
-    borderColor: "#7210FF",
+    borderColor: '#7210FF',
     borderWidth: 1,
     ...styles.center,
     // backgroundColor: "none"

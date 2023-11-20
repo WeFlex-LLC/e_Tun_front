@@ -14,43 +14,27 @@ import ReviewUserComponent from '../../../components/homeComponent/ReviewUserCom
 import {styles} from '../../../themes';
 import {StackNav} from '../../../navigation/NavigationKeys';
 
-export default function Reviews({navigation, isComponent = false}) {
+export default function Reviews({navigation, isComponent = false,data}) {
   const colors = useSelector(state => state.theme.theme);
 
-  const onPressSearch = () => navigation.navigate(StackNav.Search);
-
-  const RightIcon = () => {
-    return (
-      <TouchableOpacity onPress={onPressSearch}>
-        {colors.dark ? <Search_Dark /> : <Search_Light />}
-      </TouchableOpacity>
-    );
-  };
+  
 
   const RenderFlashListItem = ({item, index}) => {
     return <ReviewUserComponent item={item} />;
   };
 
-  const ListFlashListHeader = () => {
-    return (
-      <View style={styles.mb20}>
-        <MostPopularCategory isStar={true} chipsData={ratingData} />
-      </View>
-    );
-  };
 
   return (
     <CSafeAreaView>
       {!isComponent && (
-        <CHeader title={strings.reviews} rightIcon={<RightIcon />} />
+        <CHeader title={strings.reviews}/>
       )}
       <FlashList
-        data={!isComponent ? reviewsData : reviewsData.slice(0, 3)}
+        data={!isComponent ? data : data?.slice(0, 3)}
         renderItem={RenderFlashListItem}
         keyExtractor={(item, index) => index.toString()}
         estimatedItemSize={10}
         contentContainerStyle={styles.ph20}
-        ListHeaderComponent={<ListFlashListHeader />}
         showsVerticalScrollIndicator={false}
       />
     </CSafeAreaView>

@@ -11,6 +11,7 @@ import ProductShortDetail from '../../../components/homeComponent/ProductShortDe
 import {styles} from '../../../themes';
 import {StackNav} from '../../../navigation/NavigationKeys';
 import HomeServiceComponent from '../../../components/HomeServiceComponent';
+import { getAsyncStorageData } from '../../../utils/helpers';
 
 export default function ProductCategory({navigation, route}) {
   const item = route?.params?.item;
@@ -18,15 +19,37 @@ export default function ProductCategory({navigation, route}) {
   const colors = useSelector(state => state.theme.theme);
   const language = useSelector(state => state?.profile?.language);
   
-  const onPressDetail = itm =>
-    navigation.navigate(StackNav.ProductDetail, {item: itm});
-
+  const onPressDetail = async (itm) =>{
+    
+      const token = await getAsyncStorageData('ACCESS_TOKEN');
+  
+      try {
+        const response = await fetch(
+          `https://etunbackend-production.up.railway.app/api/services/service/${itm}`,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const res = await response.json();
+        if(res){
+          navigation.navigate(StackNav.ProductDetail, {item: res});
+       
+        }
+      } catch (error) {
+        console.error(error);
+      }
+}
   const renderItem = ({item, index}) => {
     return (
       <HomeServiceComponent
         item={item}
         index={index}
-        onPress={() => onPressDetail(item)}
+        onPress={() => onPressDetail(item.id)}
       />
     );
   };

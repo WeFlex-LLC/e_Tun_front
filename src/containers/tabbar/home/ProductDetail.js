@@ -27,29 +27,32 @@ import CButton from '../../../components/common/CButton';
 import {StackNav} from '../../../navigation/NavigationKeys';
 import Reviews from './Reviews';
 import SubHeader from '../../../components/SubHeader';
+import productImageTest from '../../../assets/images/cleaningImg2.png'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const RenderImageSample = React.memo(item => {
+const RenderImageSample = React.memo(() => {
+
   return (
     <View>
       <View style={localStyles.imageSample}>
-        <Image source={item?.item[0]} style={localStyles.imageContainer} />
+        <Image source={productImageTest} style={localStyles.imageContainer} />
         <View style={{width: '48%'}}>
           <Image
-            source={item?.item[1]}
+            source={productImageTest}
             style={[localStyles.imageHorizontal, styles.mb10]}
           />
-          <Image source={item?.item[2]} style={localStyles.imageHorizontal} />
+          <Image source={productImageTest} style={localStyles.imageHorizontal} />
         </View>
       </View>
       <View style={[localStyles.imageSample, styles.mt10]}>
         <View style={{width: '48%'}}>
           <Image
-            source={item?.item[4]}
+            source={productImageTest}
             style={[localStyles.imageHorizontal, styles.mb10]}
           />
-          <Image source={item?.item[5]} style={localStyles.imageHorizontal} />
+          <Image source={productImageTest} style={localStyles.imageHorizontal} />
         </View>
-        <Image source={item?.item[3]} style={localStyles.imageContainer} />
+        <Image source={productImageTest} style={localStyles.imageContainer} />
       </View>
     </View>
   );
@@ -58,21 +61,8 @@ const RenderImageSample = React.memo(item => {
 export default function ProductDetail({navigation, route}) {
   const item = route?.params?.item;
   const colors = useSelector(state => state.theme.theme);
-  // const [isLiked, setIsLiked] = useState(false);
 
-  // const onPressLike = () => setIsLiked(!isLiked);
-
-  const onPressReview = () => navigation.navigate(StackNav.Reviews);
-
-  const navigationMap = {
-    [strings.cleaning]: StackNav.Cleaning,
-    [strings.repairing]: StackNav.Repairing,
-    [strings.painting]: StackNav.Painting,
-    [strings.laundry]: StackNav.Laundry,
-    [strings.appliance]: StackNav.Appliance,
-    [strings.plumbing]: StackNav.Plumbing,
-    [strings.shifting]: StackNav.Shifting,
-  };
+  const onPressReview = () => navigation.navigate(StackNav.Reviews,{data: item.message});
 
   const onPressBookNow = itm => {
     // const navigationKey = navigationMap[itm];
@@ -81,96 +71,64 @@ export default function ProductDetail({navigation, route}) {
     //     item: item?.category,
     //   });
     // } else {
-      navigation.navigate(StackNav.BookingDetail);
+      // navigation.navigate(StackNav.BookingDetail);
     // }
   };
 
   const onPressMessage = () => {
     navigation.navigate(StackNav.CustomerService, {
-      title: item?.name,
+      title: item?.name_am,
     });
   };
+
+  let stars = [];
+
+  for(let i = 0; i < item.rate; i++){
+    stars.push(<MaterialIcons name="star" size={30} color={'gold'} />);
+  }
+
   return (
     <CSafeAreaView>
       <ScrollView showsVerticalScrollIndicator={false}>
         <ImageBackground
-          source={item?.productImage}
+          source={productImageTest}
           style={[
             localStyles.root,
             {backgroundColor: colors.dark ? colors.imageBg : colors.grayScale1},
           ]}>
-          <CHeader title={item?.title} />
+          <CHeader title={item?.category.name_am} />
         </ImageBackground>
         <View style={styles.mh20}>
           <View style={localStyles.productText}>
             <CText style={styles.flex} numberOfLines={1} type={'b26'}>
-              {item?.category}
+              {item?.name_am}
             </CText>
-            {/* <TouchableOpacity onPress={onPressLike}>
-              {isLiked ? (
-                <SaveIcon
-                  width={moderateScale(26)}
-                  height={moderateScale(26)}
-                />
-              ) : (
-                <UnSaveIcon
-                  width={moderateScale(26)}
-                  height={moderateScale(26)}
-                />
-              )}
-            </TouchableOpacity> */}
+          
           </View>
           <View style={localStyles.subItemStyle}>
-            <CText
-              type={'B20'}
-              numberOfLines={1}
-              style={{maxWidth: '50%'}}
-              color={colors.primary}>
-              {item?.name}
-            </CText>
-            <RatingIcon
-              width={moderateScale(22)}
-              height={moderateScale(22)}
-              style={styles.ml10}
-            />
+            
+          {
+          item.rate == 0 ? 
+          <MaterialIcons name="star-border" size={30} color={'gold'} /> 
+          :
+            stars
+          }
             <TouchableOpacity style={styles.ml5} onPress={onPressReview}>
               <CText
                 type={'s14'}
                 color={colors.dark ? colors.grayScale3 : colors.grayScale7}>
-                {item?.rating}
-                {' (' + item?.sold + ' ' + strings.reviews + ')'}
+                {item?.rate}
+                 {' (' + item?.comments.length + ' ' + strings.reviews + ')'}
               </CText>
             </TouchableOpacity>
           </View>
-          {/* <View style={localStyles.subItemStyle}>
-            <View
-              style={[
-                localStyles.paidContainer,
-                {backgroundColor: colors.dark3},
-              ]}>
-              <CText type={'s12'} color={colors.primary}>
-                {item?.header}
-              </CText>
-            </View>
-            <LocationIcon
-              width={moderateScale(22)}
-              height={moderateScale(22)}
-              style={[styles.ml10, styles.mr5]}
-            />
-            <CText
-              type={'s14'}
-              style={styles.flex}
-              numberOfLines={1}
-              color={colors.dark ? colors.grayScale3 : colors.grayScale7}>
-              {item?.address}
-            </CText>
-          </View> */}
+          
           <View style={[styles.mt15, styles.rowStart]}>
             <CText type={'b32'} color={colors.primary}>
-              {'5000֏'}
+              {item.price + '֏'}
             </CText>
-            <CText style={styles.ml10} color={colors.grayScale5}>
-              {'1 sqm'}
+            <CText style={styles.ml10} color={colors.grayScale5}> 
+              {item.unit_am}
             </CText>
           </View>
           <CDivider style={styles.mt20} />
@@ -178,27 +136,27 @@ export default function ProductDetail({navigation, route}) {
             {strings.description}
           </CText>
           <CText style={styles.mt5} type={'r14'}>
-            {strings.descText}
+            {item.desc_am}
           </CText>
-          {!!item?.sample && (
+          {item && (
             <View>
               <SubHeader
                 title1={strings.photosAndVideos}
                 // onPressSeeAll={onPressReview}
-                // title2={strings.seeAll}
+                title2={strings.seeAll}
               />
-              <RenderImageSample item={item?.sample} />
+              <RenderImageSample  />
             </View>
           )}
           <SubHeader
             title1={
-              item?.rating + ' (' + item?.sold + ' ' + strings.reviews + ')'
+              item?.rate + ' (' + item?.comments.length + ' ' + strings.reviews + ')'
             }
             onPressSeeAll={onPressReview}
-            title2={strings.seeAll}
+            // title2={strings.seeAll}
           />
         </View>
-        <Reviews isComponent={true} navigation={navigation} />
+        <Reviews isComponent={true} navigation={navigation} data={item.comments} />
       </ScrollView>
       <View style={styles.ph20}>
         <View style={localStyles.bottomContainer}>
@@ -214,7 +172,7 @@ export default function ProductDetail({navigation, route}) {
             title={strings.bookNow}
             type={'S16'}
             containerStyle={localStyles.skipBtnContainer}
-            onPress={() => onPressBookNow(item?.header)}
+            // onPress={() => onPressBookNow(item?.header)}
           />
         </View>
       </View>

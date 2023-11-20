@@ -1,6 +1,6 @@
 // Library import
 import {StyleSheet, View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 // Local import
 import CSafeAreaView from '../../../components/common/CSafeAreaView';
@@ -14,8 +14,46 @@ import CButton from '../../../components/common/CButton';
 import KeyBoardAvoidWrapper from '../../../components/common/KeyBoardAvoidWrapper';
 import CDivider from '../../../components/common/CDivider';
 import { Dropdown } from 'react-native-element-dropdown';
+import { getAsyncStorageData } from '../../../utils/helpers';
 
 export default function AddAddressForOwner({navigation}) {
+
+  const [isLoading, setLoading] = useState(true);
+  const [BuildingData, setBuildingData] = useState([]);
+
+  const getBuildings = async () => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/buildings',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const res = await response.json();
+      if(res){
+        console.log('====================================');
+        console.log(res);
+        console.log('====================================');
+        setBuildingData(res);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getBuildings();
+  }, []);
+
   
   const data = [
     { label: 'Item 1', value: '1' },

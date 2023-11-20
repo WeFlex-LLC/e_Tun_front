@@ -25,38 +25,30 @@ export default function HomeServiceComponent(props) {
         {backgroundColor: colors.dark ? colors.dark2 : colors.grayScale1},
       ]}>
       <Image
-        source={" "}
+        source={' '}
         style={[
           localStyles.productImageStyle,
           {backgroundColor: colors.dark ? colors.imageBg : colors.white},
         ]}
       />
       <View style={localStyles.rightContainer}>
-
         <CText numberOfLines={1} type={'b16'}>
           {item?.name_am}
         </CText>
 
         <View style={localStyles.btnContainer}>
-          <CText type={'r16'}>{item?.category ? item?.category.name_am : 'Full name'}</CText>
-          {/* <TouchableOpacity onPress={onPressSave}>
-            {isSaved ? <UnSaveIcon /> : <SaveIcon />}
-          </TouchableOpacity> */}
+          <CText type={'r16'}>
+            {item?.category ? item?.category.name_am : 'Full name'}
+          </CText>
+
         </View>
-        
 
         <CText numberOfLines={1} color={colors.primary} type={'b16'}>
-          {item?.price + "֏ / " + item?.unit_am} 
+          {item?.price + '֏ / ' + item?.unit_am}
         </CText>
-
 
         <View style={localStyles.subItemStyle}>
           <RatingIcon />
-          {/* <CText style={styles.ml5} type={'s12'}>
-            {item?.rating}
-            {'  |  '}
-          </CText> */}
-          {/* <CText type={'s12'}>{item?.sold + ' ' + strings.reviews}</CText> */}
         </View>
       </View>
     </TouchableOpacity>

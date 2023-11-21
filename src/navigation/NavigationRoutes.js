@@ -68,6 +68,7 @@ import AddYourService from '../containers/tabbar/calendar/AddYourService';
 import ChooseServiceCompany from '../containers/tabbar/calendar/ChooseServiceCompany';
 import CheckPin from '../containers/auth/CheckPin';
 import UpdatePin from '../containers/auth/UpdatePin';
+import Suggestions from '../containers/tabbar/profile/Suggestions';
 
 
 
@@ -103,6 +104,7 @@ export const StackRoute = {
   Address,
   HelpCenter,
   Language,
+  Suggestions,
   NotificationSetting,
   Payment,
   PrivacyPolicy,

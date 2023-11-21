@@ -78,4 +78,5 @@ export const StackNav = {
   PayPartially: 'PayPartially',
   AddYourService: 'AddYourService',
   ChooseServiceCompany:"ChooseServiceCompany",
+  Suggestions: "Suggestions"
 };

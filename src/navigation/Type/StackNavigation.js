@@ -38,6 +38,7 @@ export default function StackNavigation() {
         component={StackRoute.HelpCenter}
       />
       <Stack.Screen name={StackNav.Language} component={StackRoute.Language} />
+      <Stack.Screen name={StackNav.Suggestions} component={StackRoute.Suggestions} />
       <Stack.Screen
         name={StackNav.NotificationSetting}
         component={StackRoute.NotificationSetting}

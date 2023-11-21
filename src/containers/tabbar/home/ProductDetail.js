@@ -66,13 +66,13 @@ export default function ProductDetail({navigation, route}) {
 
   const onPressBookNow = itm => {
     // const navigationKey = navigationMap[itm];
-    // if (navigationKey) {
-    //   navigation.navigate(navigationKey, {
-    //     item: item?.category,
-    //   });
-    // } else {
-      // navigation.navigate(StackNav.BookingDetail);
-    // }
+    if (false) {
+      navigation.navigate(navigationKey, {
+        item: item?.category,
+      });
+    } else {
+      navigation.navigate(StackNav.BookingDetail);
+    }
   };
 
   const onPressMessage = () => {
@@ -172,7 +172,7 @@ export default function ProductDetail({navigation, route}) {
             title={strings.bookNow}
             type={'S16'}
             containerStyle={localStyles.skipBtnContainer}
-            // onPress={() => onPressBookNow(item?.header)}
+            onPress={() => onPressBookNow(item?.header)}
           />
         </View>
       </View>

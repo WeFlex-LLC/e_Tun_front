@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
-// import {FlashList} from '@shopify/flash-list';
-// import {Calendar} from 'react-native-calendars';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 
 // Custom Imports
@@ -18,23 +16,10 @@ import CSafeAreaView from '../../../components/common/CSafeAreaView';
 import strings from '../../../i18n/strings';
 import CHeader from '../../../components/common/CHeader';
 import {styles} from '../../../themes';
-import {
-  AppLogoDark,
-  AppLogoLight,
-  // CalendarNullDark,
-  // CalendarNullLight,
-  // Search_Dark,
-  // Search_Light,
-} from '../../../assets/svgs';
-// import RenderNullComponent from '../../../components/RenderNullComponent';
+import {AppLogoDark, AppLogoLight} from '../../../assets/svgs';
 import {deviceWidth, getHeight, moderateScale} from '../../../common/constants';
 import {StackNav} from '../../../navigation/NavigationKeys';
-// import SubHeader from '../../../components/SubHeader';
-// import {upcomingData} from '../../../api/constant';
-// import CalendarComponent from '../../../components/CalendarComponent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-// Custom Imports
-// import CText from '../../../common/CText';
 
 import CText from '../../../components/common/CText';
 import {
@@ -44,47 +29,40 @@ import {
   LocationLight,
 } from '../../../assets/svgs';
 import CButton from '../../../components/common/CButton';
-export default function CalendarTab({}) {
+import {getAsyncStorageData} from '../../../utils/helpers';
+
+export default function CalendarTab({route}) {
   const color = useSelector(state => state.theme.theme);
 
-  const AddressData = [
-    {
-      id: 1,
-      title: 'Home',
-      address: '123, Main Street, New York, USA',
-      isDefault: true,
-    },
-    {
-      id: 2,
-      title: 'Office',
-      address: '345, Second Street, New York, USA',
-      isDefault: false,
-    },
-    {
-      id: 3,
-      title: 'Appartment',
-      address: '567, Third Street, New York, USA',
-      isDefault: false,
-    },
-    {
-      id: 4,
-      title: "Parent's House",
-      address: '789, Fourth Street, New York, USA',
-      isDefault: false,
-    },
-    {
-      id: 5,
-      title: 'Farm House',
-      address: '101, Fifth Street, New York, USA',
-      isDefault: false,
-    },
-    {
-      id: 6,
-      title: 'Town Square',
-      address: '123, Main Street, New York, USA',
-      isDefault: false,
-    },
-  ];
+  const [AsyncAddressData, setAsyncAddressData] = useState();
+
+  const getApartments = async () => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/api/users/apartments',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const res = await response.json();
+      if (res) {
+        setAsyncAddressData(res);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    getApartments();
+  },[]);
 
   const navigation = useNavigation();
   const colors = useSelector(state => state.theme.theme);
@@ -100,16 +78,6 @@ export default function CalendarTab({}) {
     }
   }, [isFocused]);
 
-  // const onPressSearch = () => navigation.navigate(StackNav.Search);
-
-  // const RightIcon = () => {
-  //   return (
-  //     <TouchableOpacity style={styles.ph10} onPress={onPressSearch}>
-  //       {colors.dark ? <Search_Dark /> : <Search_Light />}
-  //     </TouchableOpacity>
-  //   );
-  // };
-
   const LeftIcon = () => {
     return (
       <View style={styles.pr10}>
@@ -118,10 +86,32 @@ export default function CalendarTab({}) {
     );
   };
 
-  const onPressAddAddress = () =>
+  const onPressAddAddress = () => {
     navigation.navigate(StackNav.AddAddressForOwner);
-  const onPressPayService = title => {
-    navigation.navigate(StackNav.PayService, {title: title});
+  };
+
+  const onPressPayService = async id => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
+    
+    try {
+      const response = await fetch(
+        `https://etunbackend-production.up.railway.app/api/users/apartments/${id}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const res = await response.json();
+      if (res) {
+        navigation.navigate(StackNav.PayService, {data: res});
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const FlashListFooter = () => {
@@ -231,10 +221,10 @@ export default function CalendarTab({}) {
         /> */}
       <View style={localStyles.root}>
         <ScrollView>
-          {AddressData?.map(({id, title, address, isDefault}) => {
+          {AsyncAddressData?.map(item => {
             return (
               <TouchableOpacity
-                onPress={() => onPressPayService(title)}
+                onPress={() => onPressPayService(item.apartment.id)}
                 style={[
                   localStyles.addressContainer,
                   {
@@ -243,12 +233,14 @@ export default function CalendarTab({}) {
                       : colors.grayScale1,
                   },
                 ]}>
-                <View style={localStyles.innerContainer} key={id}>
+                <View
+                  style={localStyles.innerContainer}
+                  key={item.apartment.id}>
                   {colors.dark ? <LocationDark /> : <LocationLight />}
                   <View style={localStyles.defaultTextContainer}>
                     <View style={localStyles.titleStyle}>
-                      <CText type={'B18'}>{title}</CText>
-                      {isDefault && (
+                      <CText type={'B18'}>{item.name}</CText>
+                      {/* {isDefault && (
                         <View
                           style={[
                             localStyles.defaultContainer,
@@ -256,10 +248,10 @@ export default function CalendarTab({}) {
                           ]}>
                           <CText type={'s12'}>{strings.default}</CText>
                         </View>
-                      )}
+                      )} */}
                     </View>
                     <CText type={'r14'} style={styles.mt2}>
-                      {address}
+                      {`${item.apartment.apartment} , ${item.apartment.building.city_am} , ${item.apartment.building.address_am} , ${item.apartment.building.name_am}`}
                     </CText>
                   </View>
                   <Ionicons

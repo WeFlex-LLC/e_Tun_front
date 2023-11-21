@@ -15,6 +15,7 @@ import KeyBoardAvoidWrapper from '../../../components/common/KeyBoardAvoidWrappe
 import CDivider from '../../../components/common/CDivider';
 import { Dropdown } from 'react-native-element-dropdown';
 import { getAsyncStorageData } from '../../../utils/helpers';
+import { StackNav, TabNav } from '../../../navigation/NavigationKeys';
 
 export default function AddAddressForOwner({navigation}) {
 
@@ -38,9 +39,7 @@ export default function AddAddressForOwner({navigation}) {
       );
       const res = await response.json();
       if(res){
-        console.log('====================================');
-        console.log(res);
-        console.log('====================================');
+    
         setBuildingData(res);
       }
     } catch (error) {
@@ -55,16 +54,13 @@ export default function AddAddressForOwner({navigation}) {
   }, []);
 
   
-  const data = [
-    { label: 'Item 1', value: '1' },
-    { label: 'Item 2', value: '2' },
-    { label: 'Item 3', value: '3' },
-    { label: 'Item 4', value: '4' },
-    { label: 'Item 5', value: '5' },
-    { label: 'Item 6', value: '6' },
-    { label: 'Item 7', value: '7' },
-    { label: 'Item 8', value: '8' },
-  ];
+  const data = BuildingData.map((item) => {
+
+    return ({
+      label: item.city_am + ", " + item.address_am + ", " + item.name_am ,
+      value: item.id
+    })
+  });
   const colors = useSelector(state => state.theme.theme);
 
   const BlurredStyle = {
@@ -95,7 +91,51 @@ export default function AddAddressForOwner({navigation}) {
   const onChangeAddName = text => setAddressName(text);
   const onChangeAddNewAddress = text => setNewAddressName(text);
 
-  const onPressAdd = () => navigation.goBack();
+  const [ErrorMessageToggle, setErrorMessageToggle] = useState(false);
+  
+  const ErrorMessage = () => {
+
+    return (
+      <View>
+          <CText type="b18" align={"center"} style={{color:"red"}}>{"Apartment Not Found!"}</CText>
+      </View>
+    )
+  }
+  const onPressAdd = async () => {
+    
+      const token = await getAsyncStorageData('ACCESS_TOKEN');
+  
+      try {
+        const response = await fetch(
+          'https://etunbackend-production.up.railway.app/api/users/apartments',
+          {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              "apartment": NewAddressName,
+              "buildingId": value,
+              "name": addressName
+            })
+          },
+        );
+        const res = await response.json();
+        if(res.success){
+         
+          navigation.navigate(TabNav.CalendarTab);
+        }else{
+          setErrorMessageToggle(true)
+        } 
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    
+  }
 
   return (
     <CSafeAreaView>
@@ -182,6 +222,7 @@ export default function AddAddressForOwner({navigation}) {
             onBlur={onBlurAddNewAddress}
 
           />
+          {ErrorMessageToggle && <ErrorMessage/>}
           <CButton
             title={strings.add}
             type={'S16'}

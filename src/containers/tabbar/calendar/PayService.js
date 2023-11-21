@@ -29,12 +29,11 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons"
 
 
 function PayService({route, navigation}) {
-  const name = route?.params?.title;
+  const AsyncData = route?.params?.data;
   const color = useSelector(state => state.theme.theme);
   const colors = useSelector(state => state.theme.theme);
 
   
-
   const data = [
     {
       id: 1,
@@ -193,7 +192,7 @@ function PayService({route, navigation}) {
         localStyles.root,
         {backgroundColor: colors.dark ? colors.dark2 : colors.grayScale1},
       ]}>
-      <CHeader title={name} 
+      <CHeader title={AsyncData.name} 
         rightIcon={<RightIcon/>}
         />
       <CDivider style={styles.mv5} />

@@ -90,12 +90,12 @@ const ProfileSetting = [
     icon: 'information-circle-outline',
     route: StackNav.HelpCenter,
   },
-  // {
-  //   id: 8,
-  //   title: strings.inviteFriends,
-  //   icon: 'people-outline',
-  //   route: StackNav.InviteFriends,
-  // },
+  {
+    id: 8,
+    title: "Suggestions",
+    icon: 'people-outline',
+    route: StackNav.Suggestions,
+  },
 ];
 
 const contactUsData = [

@@ -85,7 +85,9 @@ const Suggestions = props => {
         console.log('error', error);
       });
   };
-
+console.log('====================================');
+// console.log(photo.assets[0].fil,"uri");
+console.log('====================================');
   return (
     <CSafeAreaView>
       <CHeader title={"Suggestions"} />
@@ -95,7 +97,7 @@ const Suggestions = props => {
       {photo && (
         <>
           <Image
-            source={{ uri: photo.assets[0].uri }}
+            source={{ uri: photo.assets.uri }}
             style={{ width: 300, height: 300 }}
           />
           

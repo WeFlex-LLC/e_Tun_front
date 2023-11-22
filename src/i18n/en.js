@@ -67,7 +67,7 @@ export default {
   createYourNewPassword: 'Create Your New Password',
   viaSms: 'via SMS',
   viaEmail: 'via Email',
-  codeSendOn: 'Code has been send to +1 111 ******99',
+  codeSendOn: 'Code has been send to your Mail',
   verify: 'Verify',
   resendCodeIn: 'Resend code in',
   resendCode: 'Resend code',

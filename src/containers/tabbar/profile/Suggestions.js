@@ -63,6 +63,9 @@ const Suggestions = props => {
   const handleChoosePhoto = () => {
     launchImageLibrary({ noData: true }, (response) => {
       // console.log(response);
+      console.log('====================================');
+      console.log(response);
+      console.log('====================================');
       if (response) {
         setPhoto(response);
       }
@@ -92,7 +95,7 @@ const Suggestions = props => {
       {photo && (
         <>
           <Image
-            source={{ uri: photo.uri }}
+            source={{ uri: photo.assets[0].uri }}
             style={{ width: 300, height: 300 }}
           />
           

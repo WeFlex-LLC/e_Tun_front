@@ -1,8 +1,10 @@
 // Library import
 import {
+  Button,
   FlatList,
   StyleSheet,
   Switch,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -19,26 +21,17 @@ import CHeader from '../../../components/common/CHeader';
 import strings from '../../../i18n/strings';
 import CButton from '../../../components/common/CButton';
 import {StackNav} from '../../../navigation/NavigationKeys';
+import Biometrics from 'react-native-biometrics';
 
 export default Security = ({navigation}) => {
   const colors = useSelector(state => state.theme.theme);
   const [isEnabled, setIsEnabled] = React.useState({
     // rememberMe: false,
-    faceId: true,
-    biometricId: true,
+    faceId: false,
+    
   });
 
-  const SecurityData = [
-    // {
-    //   title: strings.rememberMe,
-    //   rightIcon: true,
-    //   value: isEnabled.rememberMe,
-    //   toggleSwitch: () =>
-    //     setIsEnabled({
-    //       ...isEnabled,
-    //       rememberMe: isEnabled.rememberMe ? false : true,
-    //     }),
-    // },
+  const SecurityData = [ 
     {
       title: strings.faceId,
       rightIcon: true,
@@ -48,21 +41,39 @@ export default Security = ({navigation}) => {
           ...isEnabled,
           faceId: isEnabled.faceId ? false : true,
         }),
-    },
-    // {
-    //   title: strings.biometricId,
-    //   rightIcon: true,
-    //   value: isEnabled.biometricId,
-    //   toggleSwitch: () =>
-    //     setIsEnabled({
-    //       ...isEnabled,
-    //       biometricId: isEnabled.biometricId ? false : true,
-    //     }),
-    // },
-    // {
-    //   title: strings.googleAuthenticator,
-    // },
+    }
   ];
+
+
+  const BiometricAuthScreen = () => {
+    useEffect(() => {
+      Biometrics.isSensorAvailable()
+        .then((result) => {
+          if (result === Biometrics.FaceID) {
+            console.log('Face ID is available');
+          } else {
+            console.log('Face ID is not available');
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, []);
+  }
+    const authenticateWithBiometrics = () => {
+      Biometrics.faceIDPrompt('Authenticate with Face ID')
+        .then((result) => {
+          if (result.success) {
+            console.log('Authentication successful');
+          } else {
+            console.log('Authentication failed');
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    };
+  
 
   const onPressChangePin = () => navigation.navigate(StackNav.UpdatePin);
   const onPressChangePassword = () =>
@@ -99,6 +110,7 @@ export default Security = ({navigation}) => {
     <CSafeAreaView>
       <CHeader title={strings.security} />
       <View style={styles.ph20}>
+
         <FlatList
           data={SecurityData}
           keyExtractor={(item, index) => item + index}
@@ -106,6 +118,10 @@ export default Security = ({navigation}) => {
           bounces={false}
           showsVerticalScrollIndicator={false}
         />
+        {isEnabled && <View>
+      <Text>Face ID Authentication Example</Text>
+      <Button title="Authenticate with Face ID" onPress={authenticateWithBiometrics} />
+    </View>}
         <CButton
           title={strings.changePin}
           type={'S16'}

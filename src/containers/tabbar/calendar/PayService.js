@@ -33,7 +33,9 @@ function PayService({route, navigation}) {
   const color = useSelector(state => state.theme.theme);
   const colors = useSelector(state => state.theme.theme);
 
-  
+  console.log('====================================');
+  console.log(AsyncData);
+  console.log('====================================');
   const data = [
     {
       id: 1,

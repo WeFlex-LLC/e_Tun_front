@@ -156,7 +156,7 @@ export default function ProfileTab({navigation}) {
               <Ionicons
                 name={item.icon}
                 size={moderateScale(28)}
-                color={color.dark ? color.white : color.darkColor}
+                color={color.dark ? color.white : color.primary}
               />
               <CText type="s18" style={styles.ml15}>
                 {item.title}

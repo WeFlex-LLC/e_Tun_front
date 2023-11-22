@@ -78,5 +78,7 @@
 		<string>fonts/Zocial.ttf</string>
 		<string>fonts/Fontisto.ttf</string>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Enabling Face ID allows you quick access to RealApp</string>
 </dict>
 </plist>

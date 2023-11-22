@@ -43,7 +43,7 @@ const ForgotPasswordOtp = ({navigation}) => {
             {strings.codeSendOn}
           </CText>
           <OTPInputView
-            pinCount={4}
+            pinCount={6}
             code={otp}
             onCodeChanged={onOtpChange}
             autoFocusOnLoad={false}

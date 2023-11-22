@@ -1,5 +1,6 @@
 // Library import
 import {
+  BackHandler,
   Button,
   FlatList,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 
@@ -21,15 +22,60 @@ import CHeader from '../../../components/common/CHeader';
 import strings from '../../../i18n/strings';
 import CButton from '../../../components/common/CButton';
 import {StackNav} from '../../../navigation/NavigationKeys';
-import Biometrics from 'react-native-biometrics';
+// import Biometrics, { BiometryTypes, FaceID } from 'react-native-biometrics';
+import TouchID from 'react-native-touch-id';
 
 export default Security = ({navigation}) => {
   const colors = useSelector(state => state.theme.theme);
+ 
+  const [isAuth, setIsAuth] = useState(false);
+  const optionalConfigObject = {
+    title: 'Authentication Required', // Android
+    imageColor: '#e00606', // Android
+    imageErrorColor: '#ff0000', // Android
+    sensorDescription: 'Touch sensor', // Android
+    sensorErrorDescription: 'Failed', // Android
+    cancelText: 'Cancel', // Android
+    fallbackLabel: 'Show Passcode', // iOS (if empty, then label is hidden)
+    unifiedErrors: false, // use unified error messages (default false)
+    passcodeFallback: false, // iOS - allows the device to fall back to using the passcode, if faceid/touch is not available. this does not mean that if touchid/faceid fails the first few times it will revert to passcode, rather that if the former are not enrolled, then it will use the passcode.
+  };
+
   const [isEnabled, setIsEnabled] = React.useState({
     // rememberMe: false,
     faceId: false,
     
   });
+
+  useEffect(() => {
+      handleBiometric();
+  });
+
+  const handleBiometric = () => {
+    TouchID.isSupported(optionalConfigObject).then((biometryType) => {
+      if (biometryType === 'FaceID') {
+        // console.log('FaceID is supported.');
+        // if (isAuth) {
+        //   return null
+        // }
+        TouchID.authenticate('', optionalConfigObject).then((success) => {
+          console.log('Success1', success);
+        }).catch(err => {
+        BackHandler.exitApp();
+    });
+    } else {
+        // console.log('TouchID is supported.');
+        // if (isAuth) {
+        //   return null
+        // }
+        TouchID.authenticate('', optionalConfigObject).then((success) => {
+          console.log('Success2', success);
+        }).catch(err => {
+        BackHandler.exitApp();
+    });
+    }
+  });
+  };
 
   const SecurityData = [ 
     {

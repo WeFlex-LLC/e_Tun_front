@@ -131,13 +131,12 @@ const SetUpProfile = props => {
     const token = await getAsyncStorageData('ACCESS_TOKEN');
 
     let formData = new FormData();
-    formData.append('img', {
-      uri: selectImage.path,
-      type: selectImage.mime,
-      name: selectImage.data,
-    });
+    // formData.append('img', selectImage.path);
     formData.append("fullName",fullName );
     formData.append("phoneNumber",phoneNo );
+    // formData.append('img', { uri: selectImage.path, name: 'singleBottle.jpg', type: 'image/jpg' });
+    // formData.append('img', { uri: response?.path, type: file?.mime, name: 'PickedApp-' + Date.now(), })
+
     const data = new FormData();
       // data.append('image', {
         // uri: image.uri,
@@ -162,8 +161,9 @@ const SetUpProfile = props => {
         );
         const res = await response.json();
         console.log('====================================');
-        console.log(res);
+        console.log(formData);
         console.log('====================================');
+        console.log(selectImage?.path)
         
       if (res.success) {
         await setAsyncStorageData('BIRTHDAY', JSON.stringify(dateOfBirth));

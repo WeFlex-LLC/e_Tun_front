@@ -29,145 +29,111 @@ export default Security = ({navigation}) => {
   const colors = useSelector(state => state.theme.theme);
  
   const [isAuth, setIsAuth] = useState(false);
-  const optionalConfigObject = {
-    title: 'Authentication Required', // Android
-    imageColor: '#e00606', // Android
-    imageErrorColor: '#ff0000', // Android
-    sensorDescription: 'Touch sensor', // Android
-    sensorErrorDescription: 'Failed', // Android
-    cancelText: 'Cancel', // Android
-    fallbackLabel: 'Show Passcode', // iOS (if empty, then label is hidden)
-    unifiedErrors: false, // use unified error messages (default false)
-    passcodeFallback: false, // iOS - allows the device to fall back to using the passcode, if faceid/touch is not available. this does not mean that if touchid/faceid fails the first few times it will revert to passcode, rather that if the former are not enrolled, then it will use the passcode.
-  };
+  // const optionalConfigObject = {
+  //   title: 'Authentication Required', // Android
+  //   imageColor: '#e00606', // Android
+  //   imageErrorColor: '#ff0000', // Android
+  //   sensorDescription: 'Touch sensor', // Android
+  //   sensorErrorDescription: 'Failed', // Android
+  //   cancelText: 'Cancel', // Android
+  //   fallbackLabel: 'Show Passcode', // iOS (if empty, then label is hidden)
+  //   unifiedErrors: false, // use unified error messages (default false)
+  //   passcodeFallback: false, // iOS - allows the device to fall back to using the passcode, if faceid/touch is not available. this does not mean that if touchid/faceid fails the first few times it will revert to passcode, rather that if the former are not enrolled, then it will use the passcode.
+  // };
 
-  const [isEnabled, setIsEnabled] = React.useState({
-    // rememberMe: false,
-    faceId: false,
+  // const [isEnabled, setIsEnabled] = React.useState({
+  //   // rememberMe: false,
+  //   faceId: false,
     
-  });
+  // });
 
-  useEffect(() => {
-      handleBiometric();
-  });
+  // useEffect(() => {
+  //     handleBiometric();
+  // });
 
-  const handleBiometric = () => {
-    TouchID.isSupported(optionalConfigObject).then((biometryType) => {
-      if (biometryType === 'FaceID') {
-        // console.log('FaceID is supported.');
-        // if (isAuth) {
-        //   return null
-        // }
-        TouchID.authenticate('', optionalConfigObject).then((success) => {
-          console.log('Success1', success);
-        }).catch(err => {
-        BackHandler.exitApp();
-    });
-    } else {
-        // console.log('TouchID is supported.');
-        // if (isAuth) {
-        //   return null
-        // }
-        TouchID.authenticate('', optionalConfigObject).then((success) => {
-          console.log('Success2', success);
-        }).catch(err => {
-        BackHandler.exitApp();
-    });
-    }
-  });
-  };
+  // const handleBiometric = () => {
+  //   TouchID.isSupported(optionalConfigObject).then((biometryType) => {
+  //     if (biometryType === 'FaceID') {
+  //       // console.log('FaceID is supported.');
+  //       // if (isAuth) {
+  //       //   return null
+  //       // }
+  //       TouchID.authenticate('', optionalConfigObject).then((success) => {
+  //         console.log('Success1', success);
+  //       }).catch(err => {
+  //       BackHandler.exitApp();
+  //   });
+  //   } else {
+  //       // console.log('TouchID is supported.');
+  //       // if (isAuth) {
+  //       //   return null
+  //       // }
+  //       TouchID.authenticate('', optionalConfigObject).then((success) => {
+  //         console.log('Success2', success);
+  //       }).catch(err => {
+  //       BackHandler.exitApp();
+  //   });
+  //   }
+  // });
+  // };
 
-  const SecurityData = [ 
-    {
-      title: strings.faceId,
-      rightIcon: true,
-      value: isEnabled.faceId,
-      toggleSwitch: () =>
-        setIsEnabled({
-          ...isEnabled,
-          faceId: isEnabled.faceId ? false : true,
-        }),
-    }
-  ];
-
-
-  const BiometricAuthScreen = () => {
-    useEffect(() => {
-      Biometrics.isSensorAvailable()
-        .then((result) => {
-          if (result === Biometrics.FaceID) {
-            console.log('Face ID is available');
-          } else {
-            console.log('Face ID is not available');
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }, []);
-  }
-    const authenticateWithBiometrics = () => {
-      Biometrics.faceIDPrompt('Authenticate with Face ID')
-        .then((result) => {
-          if (result.success) {
-            console.log('Authentication successful');
-          } else {
-            console.log('Authentication failed');
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    };
+  // const SecurityData = [ 
+  //   {
+  //     title: strings.faceId,
+  //     rightIcon: true,
+  //     value: isEnabled.faceId,
+  //     toggleSwitch: () =>
+  //       setIsEnabled({
+  //         ...isEnabled,
+  //         faceId: isEnabled.faceId ? false : true,
+  //       }),
+  //   }
+  // ];
   
-
   const onPressChangePin = () => navigation.navigate(StackNav.UpdatePin);
   const onPressChangePassword = () =>
     navigation.navigate(StackNav.CreateNewPassword);
 
-  const RenderData = data => {
-    return (
-      <TouchableOpacity style={localStyles.settingsContainer}>
-        <CText type="s18">{data.item.title}</CText>
-        <View style={localStyles.rightContainer}>
-          {!!data?.item?.rightIcon ? (
-            <Switch
-              trackColor={{
-                false: colors.grayScale3,
-                true: !colors.dark ? colors.grayScale5 : colors.primary,
-              }}
-              thumbColor={colors.white}
-              onValueChange={data?.item?.toggleSwitch}
-              value={data?.item?.value}
-            />
-          ) : (
-            <Ionicons
-              name="chevron-forward-outline"
-              size={moderateScale(20)}
-              color={colors.white}
-            />
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  // const RenderData = data => {
+  //   return (
+  //     <TouchableOpacity style={localStyles.settingsContainer}>
+  //       <CText type="s18">{data.item.title}</CText>
+  //       <View style={localStyles.rightContainer}>
+  //         {!!data?.item?.rightIcon ? (
+  //           <Switch
+  //             trackColor={{
+  //               false: colors.grayScale3,
+  //               true: !colors.dark ? colors.grayScale5 : colors.primary,
+  //             }}
+  //             thumbColor={colors.white}
+  //             onValueChange={data?.item?.toggleSwitch}
+  //             value={data?.item?.value}
+  //           />
+  //         ) : (
+  //           <Ionicons
+  //             name="chevron-forward-outline"
+  //             size={moderateScale(20)}
+  //             color={colors.white}
+  //           />
+  //         )}
+  //       </View>
+  //     </TouchableOpacity>
+  //   );
+  // };
 
   return (
     <CSafeAreaView>
       <CHeader title={strings.security} />
       <View style={styles.ph20}>
 
-        <FlatList
+        {/* <FlatList
           data={SecurityData}
           keyExtractor={(item, index) => item + index}
           renderItem={({item}) => <RenderData item={item} />}
           bounces={false}
           showsVerticalScrollIndicator={false}
-        />
-        {isEnabled && <View>
-      <Text>Face ID Authentication Example</Text>
-      <Button title="Authenticate with Face ID" onPress={authenticateWithBiometrics} />
-    </View>}
+        /> */}
+        
         <CButton
           title={strings.changePin}
           type={'S16'}

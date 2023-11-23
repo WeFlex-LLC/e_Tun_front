@@ -16,6 +16,7 @@ import KeyBoardAvoidWrapper from '../../../components/common/KeyBoardAvoidWrappe
 import {StackNav} from '../../../navigation/NavigationKeys';
 import CButton from '../../../components/common/CButton';
 import CText from '../../../components/common/CText';
+import {EditDark, EditLight} from '../../../assets/svgs';
 import {getAsyncStorageData, setAsyncStorageData} from '../../../utils/helpers';
 import { launchImageLibrary } from 'react-native-image-picker'
 const createFormData = (photo, body = {}) => {
@@ -35,6 +36,15 @@ const createFormData = (photo, body = {}) => {
 };
 
 const Suggestions = props => {
+  
+  useEffect(() => {
+    ProfilePictureSheetRef?.current?.hide();
+  }, [selectImage]);
+  const [selectImage, setSelectImage] = useState('');
+  const ProfilePictureSheetRef = createRef();
+  const onPressProfilePic = () => ProfilePictureSheetRef?.current.show();
+
+
 
   const {navigation} = props;
 
@@ -58,53 +68,34 @@ const Suggestions = props => {
   const [chatStyle, setChatStyle] = useState(BlurredStyle);
   const [uri, setUri] = React.useState(props.source?.uri || undefined);
 
-  const [photo, setPhoto] = React.useState(null);
 
-  const handleChoosePhoto = () => {
-    launchImageLibrary({ noData: true }, (response) => {
-      // console.log(response);
-      console.log('====================================');
-      console.log(response);
-      console.log('====================================');
-      if (response) {
-        setPhoto(response);
-      }
-    });
-  };
-
-  const handleUploadPhoto = () => {
-    fetch(`http://localhost3000/api/upload`, {
-      method: 'POST',
-      body: createFormData(photo, { userId: '123' }),
-    })
-      .then((response) => response.json())
-      .then((response) => {
-        console.log('response', response);
-      })
-      .catch((error) => {
-        console.log('error', error);
-      });
-  };
-console.log('====================================');
-// console.log(photo.assets[0].fil,"uri");
-console.log('====================================');
   return (
     <CSafeAreaView>
       <CHeader title={"Suggestions"} />
       <KeyBoardAvoidWrapper containerStyle={[styles.ph20]}>
         <CText type={'b18'} style={styles.mt10}>{"Upload Image"}</CText>
-        <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'flex-start',marginTop: 10 ,marginBottom:10}}>
-      {photo && (
-        <>
-          <Image
-            source={{ uri: photo.assets.uri }}
-            style={{ width: 300, height: 300 }}
-          />
-          
-        </>
-      )}
-      <Button title="Choose Photo" onPress={handleChoosePhoto} />
-    </View>
+        <TouchableOpacity
+          onPress={onPressProfilePic}
+          style={[styles.selfCenter, styles.mb20]}>
+          {/* {!!selectImage?.path ? (
+            <Image
+              source={{uri: selectImage?.path}}
+              style={localStyles.userImage}
+            />
+          ) : (
+            <Image
+              source={colors.dark ? images.userDark : images.userLight}
+              style={localStyles.userImage}
+            />
+          )} */}
+          <View style={localStyles.editIcon}>
+            {colors.dark ? (
+              <EditDark height={moderateScale(26)} width={moderateScale(26)} />
+            ) : (
+              <EditLight height={moderateScale(26)} width={moderateScale(26)} />
+            )}
+          </View>
+        </TouchableOpacity>
         <CText type={'b18'}>{strings.Notes}</CText>
         <View style={styles.rowCenter}>
           <CInput

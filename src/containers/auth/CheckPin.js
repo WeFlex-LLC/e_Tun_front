@@ -18,7 +18,8 @@ import typography from '../../themes/typography';
 import SuccessModal from '../../components/models/SuccessModal';
 import {RefundSuccessfullIcon} from '../../assets/svgs';
 import {getAsyncStorageData, setAsyncStorageData} from '../../utils/helpers';
-import { changeUserInfoNameAction } from '../../redux/action/UserInfoName';
+import {changeUserInfoNameAction} from '../../redux/action/UserInfoName';
+import TouchID from 'react-native-touch-id';
 
 const CheckPin = ({navigation, route}) => {
   const colors = useSelector(state => state.theme.theme);
@@ -27,6 +28,7 @@ const CheckPin = ({navigation, route}) => {
   const [Status, setStatus] = useState(route.params?.status);
   const [IncorrectPin, setIncorrectPin] = useState('');
   const [RefreshToken, setRefreshToken] = useState();
+  const [ToggleCheckTouchAndPin, setToggleCheckTouchAndPin] = useState(false);
   const dispatch = useDispatch();
 
   _retrieveInfoUser = async () => {
@@ -38,10 +40,132 @@ const CheckPin = ({navigation, route}) => {
   useEffect(() => {
     _retrieveInfoUser();
   }, []);
-  11;
+
+  const optionalConfigObject = {
+    title: 'Authentication Required', // Android
+    imageColor: '#e00606', // Android
+    imageErrorColor: '#ff0000', // Android
+    sensorDescription: 'Touch sensor', // Android
+    sensorErrorDescription: 'Failed', // Android
+    cancelText: 'Cancel', // Android
+    fallbackLabel: 'Show Passcode', // iOS (if empty, then label is hidden)
+    unifiedErrors: false, // use unified error messages (default false)
+    passcodeFallback: false, // iOS - allows the device to fall back to using the passcode, if faceid/touch is not available. this does not mean that if touchid/faceid fails the first few times it will revert to passcode, rather that if the former are not enrolled, then it will use the passcode.
+  };
+
+  const [isEnabled, setIsEnabled] = React.useState({
+    // rememberMe: false,
+    faceId: false,
+  });
+
+  // useEffect(() => {
+  //     handleBiometric();
+  // });
+
+  // const handleBiometric = () => {
+    //   TouchID.isSupported(optionalConfigObject).then((biometryType) => {
+    //     if (biometryType === 'FaceID') {
+    //       // console.log('FaceID is supported.');
+    //       // if (isAuth) {
+    //       //   return null
+    //       // }
+    //       TouchID.authenticate('', optionalConfigObject).then((success) => {
+    //         console.log('Success1', success);
+    //       }).catch(err => {
+    //       BackHandler.exitApp();
+    //   });
+    //   } else {
+    //       // console.log('TouchID is supported.');
+    //       // if (isAuth) {
+    //       //   return null
+    //       // }
+    //       TouchID.authenticate('', optionalConfigObject).then((success) => {
+    //         console.log('Success2', success);
+    //       }).catch(err => {
+    //       BackHandler.exitApp();
+    //   });
+    //   }
+    // });
+  // };
+
+  const getNewToken = async () => {
+    const refreshToken = await getAsyncStorageData('REFRESH_TOKEN');
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/auth/user/token',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${refreshToken}`,
+          },
+        },
+      );
+      const res = await response.json();
+      if (res.access_token) {
+        await setAsyncStorageData('ACCESS_TOKEN', res.access_token);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const AsyncCheckPin = async () => {
-    if (!Status) {
+    if (!Status && !ToggleCheckTouchAndPin) {
+      TouchID.isSupported(optionalConfigObject).then(biometryType => {
+        if (biometryType === 'FaceID') {
+          // console.log('FaceID is supported.');
+          // if (isAuth) {
+          //   return null
+          // }
+          TouchID.authenticate('', optionalConfigObject)
+            .then(success => {
+              if (success) {
+                getNewToken()
+                setStatus(true);
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: StackNav.TabBar,
+              },
+            ],
+          });
+              }
+            })
+            .catch(err => {
+              setToggleCheckTouchAndPin(true)
+            });
+        } else {
+          // console.log('TouchID is supported.');
+          // if (isAuth) {
+          //   return null
+          // }
+          TouchID.authenticate('', optionalConfigObject)
+            .then(success => {
+              if (success) {
+                getNewToken()
+                setStatus(true);
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: StackNav.TabBar,
+              },
+            ],
+          });
+              }
+            })
+            .catch(err => {
+              setToggleCheckTouchAndPin(true)
+            });
+        }
+      });
+    
+    } 
+    
+    if (!Status && ToggleCheckTouchAndPin) {
       try {
         const response = await fetch(
           'https://etunbackend-production.up.railway.app/auth/user/pin',
@@ -58,7 +182,7 @@ const CheckPin = ({navigation, route}) => {
           },
         );
         const res = await response.json();
-        
+
         if (res.access_token) {
           await setAsyncStorageData('ACCESS_TOKEN', res.access_token);
           await setAsyncStorageData('FULLNAME', res.user.fullName);
@@ -75,25 +199,29 @@ const CheckPin = ({navigation, route}) => {
               },
             ],
           });
-        }else if(res.message){
-          setIncorrectPin(res.message)
+        } else if (res.message) {
+          setIncorrectPin(res.message);
         }
       } catch (error) {
         console.log(error);
       }
     }
   };
+  useEffect(() => {
+    AsyncCheckPin()
+  },[])
 
   const onPinChange = code => setPin(code);
 
   const ErrorMessage = () => {
-
     return (
       <View>
-          <CText type="b20" align={"center"} style={{color:"red"}}>{IncorrectPin}</CText>
+        <CText type="b20" align={'center'} style={{color: 'red'}}>
+          {IncorrectPin}
+        </CText>
       </View>
-    )
-  }
+    );
+  };
 
   return (
     <CSafeAreaView>
@@ -122,7 +250,7 @@ const CheckPin = ({navigation, route}) => {
             style={localStyles.inputStyle}
             secureTextEntry={true}
           />
-          <ErrorMessage/>
+          <ErrorMessage />
         </View>
         <CButton
           type={'S16'}

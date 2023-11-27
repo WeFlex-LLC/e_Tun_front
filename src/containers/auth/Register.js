@@ -127,7 +127,7 @@ const Register = ({navigation}) => {
     // register
     try {
       const response = await fetch(
-        'https://etunbackend-production.up.railway.app/api/users/register',
+        'https://etunbackend-production.up.railway.app/auth/user/registration',
         {
           method: 'POST',
           headers: {
@@ -167,9 +167,11 @@ const Register = ({navigation}) => {
     }
   };
   const onPressPasteToken = async () => {
+    const email = await getAsyncStorageData('EMAIL')
+    
     try {
       const response = await fetch(
-        'https://etunbackend-production.up.railway.app/api/users/email',
+        'https://etunbackend-production.up.railway.app/auth/user/email/verification',
         {
           method: 'POST',
           headers: {
@@ -177,11 +179,13 @@ const Register = ({navigation}) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            token: Token,
+            "email": JSON.parse(email),
+            "pinCode": Token.toString(),
           }),
         },
       );
       const res = await response.json();
+      
       if (res.success) {
         navigation.navigate(StackNav.Login);
       }

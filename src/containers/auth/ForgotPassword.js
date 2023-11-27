@@ -88,7 +88,7 @@ const ForgotPassword = ({navigation}) => {
       const res = await response.json();
       
       if(res.success){
-        navigation.navigate(StackNav.ForgotPasswordOtp);
+        navigation.navigate(StackNav.ForgotPasswordOtp,{email:email});
       }
     } catch (error) {
       console.error(error);

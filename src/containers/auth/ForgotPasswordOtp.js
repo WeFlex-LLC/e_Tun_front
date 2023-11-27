@@ -16,22 +16,55 @@ import {getHeight, moderateScale} from '../../common/constants';
 import {StackNav} from '../../navigation/NavigationKeys';
 import typography from '../../themes/typography';
 import CButton from '../../components/common/CButton';
+import { setAsyncStorageData } from '../../utils/helpers';
 
-const ForgotPasswordOtp = ({navigation}) => {
+const ForgotPasswordOtp = ({navigation,route}) => {
   const colors = useSelector(state => state.theme.theme);
+  const email = useSelector(state => route?.params?.email)
+
+  
   const [otp, setOtp] = useState('');
   const [counterId, setCounterId] = useState('1');
   const [isTimeOver, setIsTimeOver] = useState(false);
 
   const onOtpChange = code => setOtp(code);
-  const onPressVerify = () => navigation.navigate(StackNav.CreateNewPassword);
+  // const onPressVerify = () => navigation.navigate(StackNav.CreateNewPassword);
 
-  const onFinishTimer = () => setIsTimeOver(true);
+  // const onFinishTimer = () => setIsTimeOver(true);
 
-  const onPressResend = () => {
-    setCounterId(counterId + '1');
-    setIsTimeOver(false);
-    setOtp('');
+  // const onPressResend = () => {
+  //   setCounterId(counterId + '1');
+  //   setIsTimeOver(false);
+  //   setOtp('');
+  // };
+
+  const onPressVerify = async () => {
+  
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/auth/user/pin-code/verification',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            pinCode: otp,
+            email: email,
+          }),
+        },
+      );
+      const res = await response.json();
+      
+      if(res.token){
+
+        await setAsyncStorageData("ACCESS_TOKEN",res.token)
+        navigation.navigate(StackNav.CreateNewPassword,{from:"fromForget"})
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -61,7 +94,7 @@ const ForgotPasswordOtp = ({navigation}) => {
             style={localStyles.inputStyle}
             secureTextEntry={true}
           />
-          <View style={styles.rowCenter}>
+          {/* <View style={styles.rowCenter}>
             {isTimeOver ? (
               <TouchableOpacity
                 onPress={onPressResend}
@@ -93,7 +126,7 @@ const ForgotPasswordOtp = ({navigation}) => {
                 </CText>
               </View>
             )}
-          </View>
+          </View> */}
         </View>
         <CButton
           type={'S16'}
@@ -118,7 +151,7 @@ const localStyles = StyleSheet.create({
   },
   pinInputStyle: {
     height: getHeight(60),
-    width: moderateScale(75),
+    width: moderateScale(50),
     fontSize: moderateScale(26),
     borderRadius: moderateScale(15),
   },

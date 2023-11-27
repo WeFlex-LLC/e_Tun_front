@@ -22,10 +22,12 @@ import SuccessModal from '../../components/models/SuccessModal';
 import CButton from '../../components/common/CButton';
 import {NewPassWordDark, NewPassWordLight} from '../../assets/svgs';
 import {getAsyncStorageData} from '../../utils/helpers';
+import {removeUserDetail} from '../../utils/asyncstorage';
 
-const CreateNewPassword = ({navigation}) => {
+
+const CreateNewPassword = ({navigation,route}) => {
   const colors = useSelector(state => state.theme.theme);
-
+  const fromForget = route?.params?.from == 'fromForget'
   const BlurredStyle = {
     backgroundColor: colors.inputBg,
     borderColor: colors.bColor,
@@ -135,7 +137,36 @@ const CreateNewPassword = ({navigation}) => {
       console.log(error);
     }
   };
+  const AsyncChangePasswordFromForget = async () => {
+    const token = await getAsyncStorageData('ACCESS_TOKEN');
 
+    try {
+      const response = await fetch(
+        'https://etunbackend-production.up.railway.app/auth/user/password-recovery/reset',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            // oldPassword: password,
+            newPassword: confirmPassword,
+          }),
+        },
+      );
+      const res = await response.json();
+      if (res.success) {
+        await removeUserDetail("ACCESS_TOKEN");
+        navigation.navigate(StackNav.Login);
+      } else {
+        setIncorrectPassword(res.message)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const ErrorMessage = () => {
 
     return (
@@ -167,7 +198,7 @@ const CreateNewPassword = ({navigation}) => {
             {strings.createYourNewPassword}
           </CText>
           <ErrorMessage/>
-          <CInput
+          {!fromForget && <CInput
             placeHolder={strings.password}
             keyBoardType={'default'}
             _value={password}
@@ -191,7 +222,7 @@ const CreateNewPassword = ({navigation}) => {
                 iconColor={passwordIcon}
               />
             )}
-          />
+          />}
           <CInput
             placeHolder={strings.confirmNewPassword}
             keyBoardType={'default'}
@@ -224,7 +255,7 @@ const CreateNewPassword = ({navigation}) => {
       <CButton
         type={'S16'}
         title={strings.continue}
-        onPress={AsyncChangePassword}
+        onPress={!fromForget ? AsyncChangePassword : AsyncChangePasswordFromForget}
         containerStyle={styles.m20}
       />
     </CSafeAreaView>

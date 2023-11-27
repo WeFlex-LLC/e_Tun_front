@@ -79,6 +79,12 @@ export default function ProfileTab({navigation}) {
    
     try {
       await removeUserDetail("ACCESS_TOKEN");
+      await removeUserDetail("REFRESH_TOKEN");
+      await removeUserDetail("FULLNAME");
+      await removeUserDetail("BIRTHDAY");
+      await removeUserDetail("EMAIL");
+      await removeUserDetail("COUNTRY");
+      await removeUserDetail("IMG");
       LogOutSheetRef?.current?.hide();
       setTimeout(() => {
         navigation.reset({

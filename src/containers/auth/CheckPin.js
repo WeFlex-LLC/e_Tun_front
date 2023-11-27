@@ -63,29 +63,29 @@ const CheckPin = ({navigation, route}) => {
   // });
 
   // const handleBiometric = () => {
-    //   TouchID.isSupported(optionalConfigObject).then((biometryType) => {
-    //     if (biometryType === 'FaceID') {
-    //       // console.log('FaceID is supported.');
-    //       // if (isAuth) {
-    //       //   return null
-    //       // }
-    //       TouchID.authenticate('', optionalConfigObject).then((success) => {
-    //         console.log('Success1', success);
-    //       }).catch(err => {
-    //       BackHandler.exitApp();
-    //   });
-    //   } else {
-    //       // console.log('TouchID is supported.');
-    //       // if (isAuth) {
-    //       //   return null
-    //       // }
-    //       TouchID.authenticate('', optionalConfigObject).then((success) => {
-    //         console.log('Success2', success);
-    //       }).catch(err => {
-    //       BackHandler.exitApp();
-    //   });
-    //   }
-    // });
+  //   TouchID.isSupported(optionalConfigObject).then((biometryType) => {
+  //     if (biometryType === 'FaceID') {
+  //       // console.log('FaceID is supported.');
+  //       // if (isAuth) {
+  //       //   return null
+  //       // }
+  //       TouchID.authenticate('', optionalConfigObject).then((success) => {
+  //         console.log('Success1', success);
+  //       }).catch(err => {
+  //       BackHandler.exitApp();
+  //   });
+  //   } else {
+  //       // console.log('TouchID is supported.');
+  //       // if (isAuth) {
+  //       //   return null
+  //       // }
+  //       TouchID.authenticate('', optionalConfigObject).then((success) => {
+  //         console.log('Success2', success);
+  //       }).catch(err => {
+  //       BackHandler.exitApp();
+  //   });
+  //   }
+  // });
   // };
 
   const getNewToken = async () => {
@@ -112,6 +112,9 @@ const CheckPin = ({navigation, route}) => {
   };
 
   const AsyncCheckPin = async () => {
+     const name = await getAsyncStorageData('FULLNAME')
+    
+
     if (!Status && !ToggleCheckTouchAndPin) {
       TouchID.isSupported(optionalConfigObject).then(biometryType => {
         if (biometryType === 'FaceID') {
@@ -122,20 +125,22 @@ const CheckPin = ({navigation, route}) => {
           TouchID.authenticate('', optionalConfigObject)
             .then(success => {
               if (success) {
-                getNewToken()
+                getNewToken();
+                dispatch(changeUserInfoNameAction(name));
+
                 setStatus(true);
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: StackNav.TabBar,
-              },
-            ],
-          });
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: StackNav.TabBar,
+                    },
+                  ],
+                });
               }
             })
             .catch(err => {
-              setToggleCheckTouchAndPin(true)
+              setToggleCheckTouchAndPin(true);
             });
         } else {
           // console.log('TouchID is supported.');
@@ -145,26 +150,27 @@ const CheckPin = ({navigation, route}) => {
           TouchID.authenticate('', optionalConfigObject)
             .then(success => {
               if (success) {
-                getNewToken()
+                getNewToken();
+                dispatch(changeUserInfoNameAction(name));
+
                 setStatus(true);
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: StackNav.TabBar,
-              },
-            ],
-          });
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: StackNav.TabBar,
+                    },
+                  ],
+                });
               }
             })
             .catch(err => {
-              setToggleCheckTouchAndPin(true)
+              setToggleCheckTouchAndPin(true);
             });
         }
       });
-    
-    } 
-    
+    }
+
     if (!Status && ToggleCheckTouchAndPin) {
       try {
         const response = await fetch(
@@ -208,8 +214,8 @@ const CheckPin = ({navigation, route}) => {
     }
   };
   useEffect(() => {
-    AsyncCheckPin()
-  },[])
+    AsyncCheckPin();
+  }, []);
 
   const onPinChange = code => setPin(code);
 

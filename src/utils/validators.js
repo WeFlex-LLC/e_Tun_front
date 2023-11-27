@@ -125,12 +125,12 @@ const validateConfirmPassword = (pass, password) => {
     };
   } else {
     if (passwordRegex.test(pass)) {
-      if (password != pass) {
-        return {
-          status: false,
-          msg: strings.confirmPassValidString,
-        };
-      }
+      // if (password != pass) {
+      //   return {
+      //     status: false,
+      //     msg: strings.confirmPassValidString,
+      //   };
+      // }
       return {status: true, msg: ''};
     } else {
       return {

@@ -13,12 +13,17 @@ import {THEME} from '../../common/constants';
 import {changeThemeAction} from '../../redux/action/themeAction';
 import {initialStorageValueGet} from '../../utils/asyncstorage';
 import CSafeAreaView from '../../components/common/CSafeAreaView';
+import { getAsyncStorageData } from '../../utils/helpers';
 
 const Splash = ({navigation}) => {
   const color = useSelector(state => state.theme.theme);
   const dispatch = useDispatch();
   
   const asyncProcess = async () => {
+    const refreshToken = await getAsyncStorageData('REFRESH_TOKEN')
+    // console.log('====================================');
+    // console.log(refreshToken);
+    // console.log('====================================');
     try {
       let asyncData = await initialStorageValueGet();
       let {themeColor, onBoardingValue, acessTokenValue} = asyncData;
@@ -30,7 +35,7 @@ const Splash = ({navigation}) => {
             dispatch(changeThemeAction(colors.dark));
           }
         }
-        if (!!acessTokenValue) {
+        if (refreshToken) {
           navigation.replace(StackNav.CheckPin);
         } else if (!!onBoardingValue) {
           navigation.replace(StackNav.Auth);

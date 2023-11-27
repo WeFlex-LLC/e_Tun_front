@@ -1,7 +1,7 @@
 // Library Imports
 import {StyleSheet, View, TouchableOpacity} from 'react-native';
 import React, {memo, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Local Imports
@@ -23,6 +23,7 @@ import {validateEmail, validatePassword} from '../../utils/validators';
 import KeyBoardAvoidWrapper from '../../components/common/KeyBoardAvoidWrapper';
 import {getAsyncStorageData, setAsyncStorageData} from '../../utils/helpers';
 import CButton from '../../components/common/CButton';
+import { changeUserInfoNameAction } from '../../redux/action/UserInfoName';
 
 const Login = ({navigation}) => {
   const colors = useSelector(state => state.theme.theme);
@@ -153,7 +154,7 @@ const Login = ({navigation}) => {
       />
     </TouchableOpacity>
   );
-
+  const dispatch = useDispatch()
   
   const onPressSignWithPassword = async () => {
     try {
@@ -172,7 +173,7 @@ const Login = ({navigation}) => {
         },
       );
       const res = await response.json();
-        
+      
       if (res.access_token) {
 
         await setAsyncStorageData('ACCESS_TOKEN', res.access_token);
@@ -180,9 +181,10 @@ const Login = ({navigation}) => {
         await setAsyncStorageData('SUB', res.user.sub);
 
         if(!res?.hasPin){
-          
+          dispatch(changeUserInfoNameAction(res?.user?.fullName));
           navigation.navigate(StackNav.SetPin,{status: res.hasPin,token: res.access_token})
         }else{
+          dispatch(changeUserInfoNameAction(res?.user?.fullName));
 
           navigation.reset({
             index: 0,
